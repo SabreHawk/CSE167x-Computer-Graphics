@@ -70,31 +70,37 @@ mat4 Transform::lookAt(const vec3 &eye, const vec3 &center, const vec3 &up)
 mat4 Transform::perspective(float fovy, float aspect, float zNear, float zFar)
 {
 	float theta = fovy / 2;
-	float d = glm::atan(theta);
+	float d = 1/glm::tan(theta);
 	float a = (zFar + zNear) / (zNear - zFar);
 	float b = 2 * zFar * zNear / (zNear - zFar);
 	mat4 prespective_mat(
 		d / aspect, 0, 0, 0,
 		0, d, 0, 0,
-		0, 0, a, -1,
-		0, 0, b, 0);
+		0, 0, a, b,
+		0, 0, -1, 0);
 	prespective_mat = glm::transpose(prespective_mat);
     return prespective_mat;
 }
 
 mat4 Transform::scale(const float &sx, const float &sy, const float &sz) 
 {
-    mat4 ret;
-    // YOUR CODE FOR HW2 HERE
-    // Implement scaling 
+    mat4 ret(
+		sx, 0, 0, 0,
+		0, sy, 0, 0,
+		0, 0, sz, 0,
+		0, 0, 0, 1);
+	ret = glm::transpose(ret);
     return ret;
 }
 
 mat4 Transform::translate(const float &tx, const float &ty, const float &tz) 
 {
-    mat4 ret;
-    // YOUR CODE FOR HW2 HERE
-    // Implement translation 
+	mat4 ret(
+		0, 0, 0, tx,
+		0, 0, 0, ty,
+		0, 0, 0, tz,
+		0, 0, 0, 0);
+	ret = glm::transpose(ret);
     return ret;
 }
 
