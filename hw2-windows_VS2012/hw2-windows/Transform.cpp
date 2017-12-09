@@ -26,7 +26,6 @@ mat3 Transform::rotate(const float degrees, const vec3& axis)
 	rotate_matrix[0][2] = temp_axis.z * temp_axis.x * oneC - temp_axis.y * sinA;
 	rotate_matrix[1][2] = temp_axis.z * temp_axis.y * oneC + temp_axis.x * sinA;
 	rotate_matrix[2][2] = temp_axis.z * temp_axis.z * oneC + cosA;
-	return rotate_matrix;
     return rotate_matrix;
 }
 
@@ -53,31 +52,34 @@ mat4 Transform::lookAt(const vec3 &eye, const vec3 &center, const vec3 &up)
 	vec3 n = glm::normalize(eye);
 	vec3 u = glm::normalize(glm::cross(up, n));
 	vec3 v = glm::normalize(glm::cross(n, u));
-	mat4 transMatrix(1, 0, 0, -1 * eye.x,
+	mat4 transMatrix(
+		1, 0, 0, -1 * eye.x,
 		0, 1, 0, -1 * eye.y,
 		0, 0, 1, -1 * eye.z,
 		0, 0, 0, 1);
-	mat4 rotMatrix(u.x, u.y, u.z, 0,
+	mat4 rotMatrix(
+		u.x, u.y, u.z, 0,
 		v.x, v.y, v.z, 0,
 		n.x, n.y, n.z, 0,
 		0, 0, 0, 1);
 	mat4 result = transMatrix  * rotMatrix;
 	result = glm::transpose(result);
-	//   You will change this return call
-	//for (int i = 0; i < 4; ++i) {
-	//	for (int j = 0; j < 4; ++j) {
-	//		cout << result[i][j] << " ";
-	//	}cout << endl;
-	//}
 	return result;
 }
 
 mat4 Transform::perspective(float fovy, float aspect, float zNear, float zFar)
 {
-    mat4 ret;
-    // YOUR CODE FOR HW2 HERE
-    // New, to implement the perspective transform as well.  
-    return ret;
+	float theta = fovy / 2;
+	float d = glm::atan(theta);
+	float a = (zFar + zNear) / (zNear - zFar);
+	float b = 2 * zFar * zNear / (zNear - zFar);
+	mat4 prespective_mat(
+		d / aspect, 0, 0, 0,
+		0, d, 0, 0,
+		0, 0, a, -1,
+		0, 0, b, 0);
+	prespective_mat = glm::transpose(prespective_mat);
+    return prespective_mat;
 }
 
 mat4 Transform::scale(const float &sx, const float &sy, const float &sz) 
