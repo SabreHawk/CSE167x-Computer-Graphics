@@ -44,7 +44,9 @@ void matransform(stack<mat4> &transfstack, GLfloat* values)
     mat4 transform = transfstack.top(); 
     vec4 valvec = vec4(values[0],values[1],values[2],values[3]); 
     vec4 newval = transform * valvec; 
-    for (int i = 0; i < 4; i++) values[i] = newval[i]; 
+	for (int i = 0; i < 4; i++) {
+		values[i] = newval[i];
+	}
 }
 
 void rightmultiply(const mat4 & M, stack<mat4> &transfstack) 
@@ -171,7 +173,7 @@ void readfile(const char* filename)
 						center = vec3(values[6], values[7], values[8]);
 						fovy = values[9];
 					//	vec3 temp_z = eyeinit - center;
-					//	upinit = Transform::upvector(upinit, temp_z);
+					//	upinit = Transform::upvector(upinit, temp_z); 
                     }
                 }
 
@@ -185,6 +187,7 @@ void readfile(const char* filename)
                         validinput = readvals(s, 1, values); 
                         if (validinput) {
                             object * obj = &(objects[numobjects]); 
+cout << "## Obj Pointer Error Detection" << endl;
                             obj->size = values[0]; 
 
                             // Set the object's light properties
@@ -215,39 +218,45 @@ void readfile(const char* filename)
                 else if (cmd == "translate") {
                     validinput = readvals(s,3,values); 
                     if (validinput) {
-
                         // YOUR CODE FOR HW 2 HERE.  
                         // Think about how the transformation stack is affected
                         // You might want to use helper functions on top of file. 
                         // Also keep in mind what order your matrix is!
-
+						mat4 temp_trans = Transform::translate(values[0], values[1], values[2]);
+						rightmultiply(temp_trans, transfstack);
                     }
                 }
                 else if (cmd == "scale") {
                     validinput = readvals(s,3,values); 
                     if (validinput) {
-
                         // YOUR CODE FOR HW 2 HERE.  
                         // Think about how the transformation stack is affected
                         // You might want to use helper functions on top of file.  
                         // Also keep in mind what order your matrix is!
-
+						mat4 temp_scale = Transform::scale(values[0], values[1], values[2]);
+						rightmultiply(temp_scale, transfstack);
                     }
                 }
                 else if (cmd == "rotate") {
                     validinput = readvals(s,4,values); 
                     if (validinput) {
-
                         // YOUR CODE FOR HW 2 HERE. 
                         // values[0..2] are the axis, values[3] is the angle.  
                         // You may want to normalize the axis (or in Transform::rotate)
                         // See how the stack is affected, as above.  
                         // Note that rotate returns a mat3. 
                         // Also keep in mind what order your matrix is!
-
+						vec3 temp_axis = vec3(values[0], values[1], values[2]);
+						float temp_angle = values[3];
+						mat3 temp_rot3 = Transform::rotate(temp_angle,temp_axis);
+						mat4 temp_rot = mat4(1.0);
+						for (int i = 0; i < 3; ++i) {
+							for (int j = 0 ;j < 3 ;++ j){
+								temp_rot[i][j] = temp_rot3[i][j];
+							}
+						}
                     }
                 }
-
                 // I include the basic push/pop code for matrix stacks
                 else if (cmd == "pushTransform") {
                     transfstack.push(transfstack.top()); 
@@ -258,7 +267,6 @@ void readfile(const char* filename)
                         transfstack.pop(); 
                     }
                 }
-
                 else {
                     cerr << "Unknown Command: " << cmd << " Skipping \n"; 
                 }

@@ -84,7 +84,7 @@ mat4 Transform::perspective(float fovy, float aspect, float zNear, float zFar)
 		0, d, 0, 0,
 		0, 0, a, b,
 		0, 0, -1, 0);
-	//prespective_mat = glm::transpose(prespective_mat);
+	prespective_mat = glm::transpose(prespective_mat);
     return perspective_mat;
 }
 

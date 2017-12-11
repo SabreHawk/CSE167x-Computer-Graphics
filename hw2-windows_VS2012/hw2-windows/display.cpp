@@ -54,6 +54,9 @@ void display()
     mv = glm::lookAt(eye,center,up); 
   } else {
     mv = Transform::lookAt(eye,center,up); 
+	if (mv != glm::lookAt(eye, center, up)) {
+		cout << "LookAt Matrix Error" << endl;
+	}
   }
 
   glLoadMatrixf(&mv[0][0]); 
@@ -69,7 +72,9 @@ void display()
     // glUniform4fv() and similar functions will be useful. See FAQ for help with these functions.
     // The lightransf[] array in variables.h and transformvec() might also be useful here.
     // Remember that light positions must be transformed by modelview.  
-
+	for (int i = 0; i < numused; ++i) {
+		//glUniform4fv(lightposn,)
+	}
   } else {
     glUniform1i(enablelighting,false); 
   }
