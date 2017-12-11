@@ -67,7 +67,7 @@ EXTERN struct object {
   GLfloat emission[4] ; 
   GLfloat shininess ;
   mat4 transform ; 
-} objects[maxobjects] ;
+} objects[maxobjects];
 
 // Variables to set uniform params for lighting fragment shader 
 EXTERN GLuint lightcol ; 

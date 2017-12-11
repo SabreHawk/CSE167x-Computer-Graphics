@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
   } 
 
   init();
-  readfile(argv[1]) ; 
+  readfile("hw1.txt") ; 
   glutDisplayFunc(display);
   glutSpecialFunc(specialKey);
   glutKeyboardFunc(keyboard);
@@ -205,7 +205,6 @@ int main(int argc, char* argv[]) {
   if (argc > 2) {
     allowGrader = true;
     stringstream tcid;
-    tcid << argv[1] << "." << argv[2];
     grader.init(tcid.str());
     grader.loadCommands(argv[2]);
     grader.bindDisplayFunc(display);

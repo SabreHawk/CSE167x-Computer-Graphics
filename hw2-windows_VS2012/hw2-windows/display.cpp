@@ -84,7 +84,7 @@ void display()
   // set up the net transformation matrix for the objects.  
   // Account for GLM issues, matrix order (!!), etc.  
 
-  glLoadMatrixf(&transf[0][0]); 
+  //glLoadMatrixf(&transf[0][0]); 
 
   for (int i = 0 ; i < numobjects ; i++) {
     object* obj = &(objects[i]); // Grabs an object struct.
