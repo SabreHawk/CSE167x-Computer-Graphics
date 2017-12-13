@@ -39,10 +39,9 @@ void reshape(int width, int height){
   glMatrixMode(GL_PROJECTION);
   float aspect = w / (float) h, zNear = 0.1, zFar = 99.0 ;
   // I am changing the projection stuff to be consistent with lookat
-
   if (useGlu) mv = glm::perspective(fovy,aspect,zNear,zFar) ; 
   else {
-    mv = Transform::perspective(fovy,aspect,zNear,zFar) ;
+    mv = Transform::perspective(fovy,aspect,zNear,zFar) ; 
   }
   glLoadMatrixf(&mv[0][0]) ; 
 
@@ -184,6 +183,7 @@ int main(int argc, char* argv[]) {
     cerr << "Usage: transforms scenefile [grader input (optional)]\n"; 
     exit(-1); 
   }
+
   FreeImage_Initialise();
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
   } 
 
   init();
-  readfile("hw1.txt") ; 
+  readfile(argv[1]) ; 
   glutDisplayFunc(display);
   glutSpecialFunc(specialKey);
   glutKeyboardFunc(keyboard);
@@ -205,6 +205,7 @@ int main(int argc, char* argv[]) {
   if (argc > 2) {
     allowGrader = true;
     stringstream tcid;
+    tcid << argv[1] << "." << argv[2];
     grader.init(tcid.str());
     grader.loadCommands(argv[2]);
     grader.bindDisplayFunc(display);
