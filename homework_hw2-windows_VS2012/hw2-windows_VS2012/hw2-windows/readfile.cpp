@@ -169,7 +169,7 @@ void readfile(const char* filename)
                         // Set eyeinit upinit center fovy in variables.h 
 						eyeinit = vec3(values[0], values[1], values[2]);
 						center = vec3(values[3], values[4], values[5]);
-						vec3 temp_lookDir = eyeinit - center;
+						vec3 temp_lookDir = glm::normalize(eyeinit - center);
 						vec3 temp_upvec = glm::normalize(vec3(values[6], values[7], values[8]));
 						upinit = Transform::upvector(temp_upvec, temp_lookDir);
 						fovy = values[9];
@@ -244,7 +244,7 @@ void readfile(const char* filename)
                         // See how the stack is affected, as above.  
                         // Note that rotate returns a mat3. 
                         // Also keep in mind what order your matrix is!
-						vec3 temp_axis = vec3(values[0], values[1], values[2]);
+						vec3 temp_axis = glm::normalize(vec3(values[0], values[1], values[2]));
 						mat3 temp_rot3 = Transform::rotate(values[3],temp_axis);
 						mat4 temp_rot = mat4(1.0);
 						for (int i = 0; i < 3; ++i) {

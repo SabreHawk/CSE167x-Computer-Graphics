@@ -1,8 +1,5 @@
-﻿  Transform.cpp
+﻿  display.cpp
 c:\users\mysab\documents\sourcecode\project-cpp\cse167x-computer-graphics\homework_hw2-windows_vs2012\hw2-windows_vs2012\hw2-windows\glm-0.9.2.7\glm\core\func_common.hpp : warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
 c:\users\mysab\documents\sourcecode\project-cpp\cse167x-computer-graphics\homework_hw2-windows_vs2012\hw2-windows_vs2012\hw2-windows\glm-0.9.2.7\glm\core\func_common.inl : warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
 c:\users\mysab\documents\sourcecode\project-cpp\cse167x-computer-graphics\homework_hw2-windows_vs2012\hw2-windows_vs2012\hw2-windows\glm-0.9.2.7\glm\core\func_integer.hpp : warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
-c:\users\mysab\documents\sourcecode\project-cpp\cse167x-computer-graphics\homework_hw2-windows_vs2012\hw2-windows_vs2012\hw2-windows\transform.h(18): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\mysab\documents\sourcecode\project-cpp\cse167x-computer-graphics\homework_hw2-windows_vs2012\hw2-windows_vs2012\hw2-windows\transform.cpp(16): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
-c:\users\mysab\documents\sourcecode\project-cpp\cse167x-computer-graphics\homework_hw2-windows_vs2012\hw2-windows_vs2012\hw2-windows\transform.cpp(56): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   hw2-windows.vcxproj -> C:\Users\mySab\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\homework_hw2-windows_VS2012\hw2-windows_VS2012\Debug\hw2-windows.exe
