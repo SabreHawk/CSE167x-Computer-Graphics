@@ -1,5 +1,0 @@
-﻿  display.cpp
-c:\users\mysab\documents\sourcecode\project-cpp\cse167x-computer-graphics\homework_hw2-windows_vs2012\hw2-windows_vs2012\hw2-windows\glm-0.9.2.7\glm\core\func_common.hpp : warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
-c:\users\mysab\documents\sourcecode\project-cpp\cse167x-computer-graphics\homework_hw2-windows_vs2012\hw2-windows_vs2012\hw2-windows\glm-0.9.2.7\glm\core\func_common.inl : warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
-c:\users\mysab\documents\sourcecode\project-cpp\cse167x-computer-graphics\homework_hw2-windows_vs2012\hw2-windows_vs2012\hw2-windows\glm-0.9.2.7\glm\core\func_integer.hpp : warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
-  hw2-windows.vcxproj -> C:\Users\mySab\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\homework_hw2-windows_VS2012\hw2-windows_VS2012\Debug\hw2-windows.exe
