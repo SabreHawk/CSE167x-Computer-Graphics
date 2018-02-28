@@ -36,7 +36,7 @@ uniform float shininess;
 
 vec4 ComputeLight (vec3 direction, vec4 lightcolor, vec3 normal, vec3 halfvec, vec4 mydiffuse, vec4 myspecular, float myshininess) {
 
-        float nDotL = dot(normal, direction)  ;         
+        float nDotL = dot(normal, direction);         
         vec4 lambert = mydiffuse * lightcolor * max (nDotL, 0.0) ;  
 
         float nDotH = dot(normal, halfvec) ; 
@@ -49,25 +49,27 @@ vec4 ComputeLight (vec3 direction, vec4 lightcolor, vec3 normal, vec3 halfvec, v
 void main (void) 
 {       
     if (enablelighting) {       
-        vec4 finalcolor; 
-
         // YOUR CODE FOR HW 2 HERE
         // A key part is implementation of the fragment shader
 
         // Color all pixels black for now, remove this in your implementation!
         vec3 eye_pos = vec3(0,0,0);
-        vec3 ver_pos = modelview * myvertex
+        vec4 ver_pos = modelview * myvertex;
         vec3 eye_dir = normalize(eye_pos-(ver_pos.xyz/ver_pos.w));
 
-        vec3 frg_normal = normalize(mat3(transpose(inverse(modelview))*mynormal);
+        vec3 frg_normal = normalize(mat3(transpose(inverse(modelview)))*mynormal);
         vec4 tmp_color = vec4(0,0,0,0);
         for(int i = 0;i < numLights;++ i){
-            vec3 light_pos = lightposn[i].w ? lightposn[i].xyz : lightposn[i].xyz/lightposn[i].w;
-            vec3 light_col = lightcolor[i];
-
-            vec3 ref_dir = light_pos - ver_pos;
-            vec3 half_vec = normalize(eye_dir+light)
-            tmp_color += ComputeLight(ref_dir,light_col,frg_normal,half_vec,diffuse,specular,shininess);
+            vec4 light_pos = lightposn[i];
+            vec4 light_col = lightcolor[i];
+            vec3 light_dir;
+            if(light_pos.w==0){
+                light_dir = normalize(light_pos.xyz);
+            }else if(light_pos.w == 1){
+                light_dir = normalize(light_pos.xyz/light_pos.w - (ver_pos.xyz/ver_pos.w));
+            }
+            vec3 half_vec = normalize(eye_dir+light_dir);
+            tmp_color += ComputeLight(light_dir,light_col,frg_normal,half_vec,diffuse,specular,shininess);
         }
         fragColor = ambient + emission + tmp_color;
     } else {

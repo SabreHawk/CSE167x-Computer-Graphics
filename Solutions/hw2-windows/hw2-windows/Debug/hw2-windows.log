@@ -1,2 +1,9 @@
-﻿  display.cpp
+﻿  shaders.cpp
+  readfile.cpp
+  main.cpp
+  display.cpp
+  grader.cpp
+  Transform.cpp
+  Geometry.cpp
+  Generating Code...
   hw2-windows.vcxproj -> C:\Users\mySab\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\Solutions\hw2-windows\Debug\hw2-windows.exe
