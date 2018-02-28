@@ -41,79 +41,99 @@ void transformvec (const GLfloat input[4], GLfloat output[4])
 	output[3] = outputvec[3];
 }
 
-void display() 
-{
-  glClearColor(0, 0, 1, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void display() {
+	glClearColor(0, 0, 1, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // Set up the camera view
+	// Set up the camera view
 
-  // Either use the built-in lookAt function or the lookAt implemented by the user.
-  if (useGlu) {
-    modelview = glm::lookAt(eye,center,up); 
-  } else {
-    modelview = Transform::lookAt(eye,center,up); 
-  }
+	// Either use the built-in lookAt function or the lookAt implemented by the user.
+	if (useGlu) {
+		modelview = glm::lookAt(eye, center, up);
+	} else {
+		modelview = Transform::lookAt(eye, center, up);
+	}
 
-  glUniformMatrix4fv(modelviewPos, 1, GL_FALSE, &modelview[0][0]);
+	glUniformMatrix4fv(modelviewPos, 1, GL_FALSE, &modelview[0][0]);
 
-  // Lights are transformed by current modelview matrix. 
-  // The shader can't do this globally. 
-  // So we need to do so manually.  
-  if (numused) {
-    glUniform1i(enablelighting,true);
+	// Lights are transformed by current modelview matrix. 
+	// The shader can't do this globally. 
+	// So we need to do so manually.  
+	if (numused) {
+		glUniform1i(enablelighting, true);
 
-    // YOUR CODE FOR HW 2 HERE.  
-    // You need to pass the light positions and colors to the shader. 
-    // glUniform4fv() and similar functions will be useful. See FAQ for help with these functions.
-    // The lightransf[] array in variables.h and transformvec() might also be useful here.
-    // Remember that light positions must be transformed by modelview.  
+		// YOUR CODE FOR HW 2 HERE.  
+		// You need to pass the light positions and colors to the shader. 
+		// glUniform4fv() and similar functions will be useful. See FAQ for help with these functions.
+		// The lightransf[] array in variables.h and transformvec() might also be useful here.
+		// Remember that light positions must be transformed by modelview.  
+		float tmp_in_vec[4], tmp_out_vec[4];
+		for (int i = 0; i < numused; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				tmp_in_vec[j] = lightposn[j + i * 4];
+			}
+			transformvec(tmp_in_vec, tmp_out_vec);
+			for (int j = 0; j < 4; ++j) {
+				lightransf[j + i * 4] = tmp_out_vec[j];
+			}
+		}
+		glUniform4fv(lightpos, numused, lightransf);
+		glUniform4fv(lightcol, numused, lightcolor);
+		glUniform1i(numusedcol, numused);
+	} else {
+		glUniform1i(enablelighting, false);
+	}
 
-  } else {
-    glUniform1i(enablelighting,false); 
-  }
+	// Transformations for objects, involving translation and scaling 
+	mat4 sc(1.0), tr(1.0), transf(1.0);
+	sc = Transform::scale(sx, sy, 1.0);
+	tr = Transform::translate(tx, ty, 0.0);
 
-  // Transformations for objects, involving translation and scaling 
-  mat4 sc(1.0) , tr(1.0), transf(1.0); 
-  sc = Transform::scale(sx,sy,1.0); 
-  tr = Transform::translate(tx,ty,0.0); 
-
-  // YOUR CODE FOR HW 2 HERE.  
-  // You need to use scale, translate and modelview to 
-  // set up the net transformation matrix for the objects.  
-  // Account for GLM issues, matrix order (!!), etc.  
+	// YOUR CODE FOR HW 2 HERE.  
+	// You need to use scale, translate and modelview to 
+	// set up the net transformation matrix for the objects.  
+	// Account for GLM issues, matrix order (!!), etc.  
 
 
-  // The object draw functions will need to further modify the top of the stack,
+	// The object draw functions will need to further modify the top of the stack,
 
-  // so assign whatever transformation matrix you intend to work with to modelview
+	// so assign whatever transformation matrix you intend to work with to modelview
 
-  // rather than use a uniform variable for that.
-  modelview = transf;
-  
-  for (int i = 0 ; i < numobjects ; i++) {
-    object* obj = &(objects[i]); // Grabs an object struct.
+	// rather than use a uniform variable for that.
 
-    // YOUR CODE FOR HW 2 HERE. 
-    // Set up the object transformations 
-    // And pass in the appropriate material properties
-    // Again glUniform() related functions will be useful
 
-    // Actually draw the object
-    // We provide the actual drawing functions for you.  
-    // Remember that obj->type is notation for accessing struct fields
-    if (obj->type == cube) {
-      solidCube(obj->size); 
-    }
-    else if (obj->type == sphere) {
-      const int tessel = 20; 
-      solidSphere(obj->size, tessel, tessel); 
-    }
-    else if (obj->type == teapot) {
-      solidTeapot(obj->size); 
-    }
-	
-  }
-  
-  glutSwapBuffers();
+	transf = modelview * tr * sc;
+	glUniformMatrix4fv(modelviewPos, 1, GL_FALSE, &(transf)[0][0]);
+
+	for (int i = 0; i < numobjects; i++) {
+		object* obj = &(objects[i]); // Grabs an object struct.
+
+		// YOUR CODE FOR HW 2 HERE. 
+		// Set up the object transformations 
+		// And pass in the appropriate material properties
+		// Again glUniform() related functions will be useful
+
+		// Actually draw the object
+		// We provide the actual drawing functions for you.  
+		// Remember that obj->type is notation for accessing struct fields
+		modelview = transf * obj->transform;
+		glUniform4fv(ambientcol, 1, obj->ambient); // TODO add each material property
+		glUniform4fv(diffusecol, 1, obj->diffuse);
+		glUniform4fv(specularcol, 1, obj->specular);
+		glUniform4fv(emissioncol, 1, obj->emission);
+		glUniform1f(shininesscol, obj->shininess);
+
+
+		if (obj->type == cube) {
+			solidCube(obj->size);
+		} else if (obj->type == sphere) {
+			const int tessel = 20;
+			solidSphere(obj->size, tessel, tessel);
+		} else if (obj->type == teapot) {
+			solidTeapot(obj->size);
+		}
+
+	}
+
+	glutSwapBuffers();
 }
