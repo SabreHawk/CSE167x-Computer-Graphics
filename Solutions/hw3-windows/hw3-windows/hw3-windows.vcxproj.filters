@@ -30,6 +30,18 @@
     <ClCompile Include="Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< HEAD
+=======
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+>>>>>>> b7fd84eba9b5250c4b002f1610806cc844c99825
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Object.h">
@@ -45,6 +57,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
+<<<<<<< HEAD
+=======
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+>>>>>>> b7fd84eba9b5250c4b002f1610806cc844c99825
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

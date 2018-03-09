@@ -3,7 +3,8 @@
 #include <sstream>
 #include "Scene.h"
 #include "Light.h"
-
+#include "Camera.h"
+#include "Transform.h"
 Scene::Scene() {
 }
 
@@ -17,6 +18,10 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 	glm::vec3 tmp_specular;
 	glm::vec3 tmp_emission;
 	glm::vec3 tmp_shininess;
+	glm::vec3 tmp_lookat;
+	glm::vec3 tmp_lookfrom;
+	glm::vec3 tmp_upvec;
+	float tmp_fovy;
 
 	for (itor = _content.begin(); itor != _content.end(); ++itor) {
 		tmp_str = *itor;
@@ -50,8 +55,40 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 					s_stream >> tmp_ambient[i];
 				}
 			} else if (cmd == "diffuse") {
-
-
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_diffuse[i];
+				}
+			} else if (cmd == "specular") {
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_specular[i];
+				}
+			} else if (cmd == "emission") {
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_emission[i];
+				}
+			} else if (cmd == "shininess") {
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_shininess[i];
+				}
+			} else if (cmd == "size") {
+				s_stream >> this->image_width;
+				s_stream >> this->image_height;
+			} else if (cmd == "camera") {
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_lookfrom[i];
+				}
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_lookat[i];
+				}
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_upvec[i];
+				}
+				s_stream >> tmp_fovy;
+				tmp_upvec = Transform::upvector(tmp_upvec, tmp_lookfrom - tmp_lookat);
+				Camera tmp_camera(tmp_lookfrom, tmp_lookat, tmp_upvec, tmp_fovy);
+				this->camera = tmp_camera;
+			} else if (cmd == "sphere" || cmd == "cube" || cmd == "teapot") {
+				Object tmp_obj = 
 			}
 		}
 	}

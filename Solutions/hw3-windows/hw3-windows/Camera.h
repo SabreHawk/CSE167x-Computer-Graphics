@@ -9,5 +9,8 @@ private:
 	glm::vec3 target_position;
 	glm::vec3 up_vector;
 	float fov_y;
+public:
+	Camera();
+	Camera(glm::vec3, glm::vec3, glm::vec3,float);
 };
 #endif
