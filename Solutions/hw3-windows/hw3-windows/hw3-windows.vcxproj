@@ -74,6 +74,10 @@
     <IncludePath>C:\Users\mySab\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\Solutions\hw3-windows\hw3-windows\OpenGL-Configuration\includes;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\mySab\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\Solutions\hw3-windows\hw3-windows\OpenGL-Configuration\libraries;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>C:\Users\Zhiquan.Wang\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\Solutions\hw3-windows\hw3-windows\OpenGL-Configuration\includes;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Zhiquan.Wang\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\Solutions\hw3-windows\hw3-windows\OpenGL-Configuration\libraries;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -92,6 +96,9 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -122,7 +129,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="FileManager.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OpenGL-Configuration\glad.c" />
     <ClCompile Include="Scene.cpp" />
@@ -130,7 +139,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="FileManager.h" />
-    <ClInclude Include="light.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Scene.h" />
   </ItemGroup>

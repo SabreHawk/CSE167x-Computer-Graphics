@@ -5,17 +5,19 @@
 #include <vector>
 #include "Object.h"
 #include "Camera.h"
+#include "Light.h"
 class Scene {
 private:
 	int image_height;
 	int image_width;
 	int max_ray_depth;
 	int scene_name;
-	std::vector<Object> object_vector;
+	std::vector<Light> light_vector;
 	Camera camera;
 public:
 	Scene() {
 	}
 	void scene_analyzer(std::vector<std::string>);
+	void add_light(Light);
 };
 #endif
