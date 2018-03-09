@@ -21,4 +21,9 @@ public:
 	void setEmission(glm::vec4);
 };
 
+class Sphere : public Object {
+private:
+	glm::vec3 center_pos;
+	float radius;
+};
 #endif

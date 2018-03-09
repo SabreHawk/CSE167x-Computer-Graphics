@@ -13,6 +13,7 @@ private:
 	int max_ray_depth;
 	int scene_name;
 	std::vector<Light> light_vector;
+	std::vector<Object> object_vector;
 	Camera camera;
 public:
 	Scene() {

@@ -88,7 +88,8 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 				Camera tmp_camera(tmp_lookfrom, tmp_lookat, tmp_upvec, tmp_fovy);
 				this->camera = tmp_camera;
 			} else if (cmd == "sphere" || cmd == "cube" || cmd == "teapot") {
-				Object tmp_obj = 
+				Sphere tmp_sphere();
+				this->object_vector.push_back(tmp_sphere);
 			}
 		}
 	}

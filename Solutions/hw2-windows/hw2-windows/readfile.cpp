@@ -186,7 +186,6 @@ void readfile(const char* filename)
                         if (validinput) {
                             object * obj = &(objects[numobjects]); 
                             obj->size = values[0]; 
-
                             // Set the object's light properties
                             for (i = 0; i < 4; i++) {
                                 (obj->ambient)[i] = ambient[i]; 
@@ -195,7 +194,6 @@ void readfile(const char* filename)
                                 (obj->emission)[i] = emission[i];
                             }
                             obj->shininess = shininess; 
-
                             // Set the object's transform
                             obj->transform = transfstack.top(); 
 
