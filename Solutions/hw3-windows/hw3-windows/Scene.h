@@ -11,7 +11,7 @@ private:
 	int image_height;
 	int image_width;
 	int max_ray_depth;
-	int scene_name;
+	std::string scene_name;
 	std::vector<Light> light_vector;
 	std::vector<Object*> object_vector;
 	Camera camera;
@@ -20,7 +20,9 @@ public:
 	}
 	void scene_analyzer(std::vector<std::string>);
 	void add_light(Light);
-	void light_info();
-	void object_info();
+	void render();
+	void disLightInfo();
+	void disObjectInfo();
+	void disSceneInfo();
 };
 #endif

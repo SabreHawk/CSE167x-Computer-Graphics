@@ -21,6 +21,9 @@ public:
 	void setEmission(glm::vec3);
 	void setShininess(float);
 	void setTransMat(glm::mat4);
+	glm::mat4 getTransMat();
+	virtual void disInfo();
+	virtual void transObject();
 };
 
 class Sphere : public Object {
@@ -30,6 +33,7 @@ private:
 public:
 	Sphere();
 	Sphere(glm::vec3, float);
+	void disInfo();
 };
 
 class Triangle :public Object {
@@ -37,6 +41,10 @@ private:
 	glm::vec3 vertexs[3];
 	glm::vec3 normal;
 public:
+	Triangle();
 	Triangle(glm::vec3 _v[3]);
+	void disInfo();
+	void transObject();
+	void setTransMat(glm::mat4 _m);
 };
 #endif

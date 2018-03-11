@@ -27,15 +27,15 @@ void Light::setAttenuation(glm::vec3 _att) {
 void Light::disInfo() {
 	std::cout << "Type : " << this->type << std::endl;
 	std::cout << "Position : ";
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 2; ++i) {
 		std::cout << this->light_pos[i] << " ";
 	}std::cout << std::endl;
 	std::cout << "Color : ";
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 2; ++i) {
 		std::cout << this->light_color[i] << " ";
 	}std::cout << std::endl;
 	std::cout << "Attenuation : ";
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 2; ++i) {
 		std::cout << this->attenuation[i] << " ";
 	}std::cout << std::endl;
 
