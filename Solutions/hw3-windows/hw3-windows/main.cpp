@@ -6,11 +6,16 @@
 using namespace std;
 
 int main() {
-	bool isTest = false;
+	bool isTest = true;
 	if (isTest) {
-		/*glm::vec4 tmp(1,2,2,1);
-		glm::vec3 a;*/
-		//a = glm::vec3(tmp);
+		glm::vec3 tmp;
+		if (&tmp == nullptr) {
+			cout << "s" << std::endl;
+		} else {
+			cout << "a" << endl;
+		}
+			 
+		cin.get();
 	} else {
 		string a = "scene-info/scene4-ambient.test";
 		FileManager file_manager(a);

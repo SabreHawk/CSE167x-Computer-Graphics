@@ -57,6 +57,10 @@ void Object::disInfo() {
 void Object::transObject() {
 }
 
+glm::vec3 Object::intersectRay(Ray) {
+	return glm::vec3();
+}
+
 Sphere::Sphere() {
 
 }
@@ -75,10 +79,19 @@ void Sphere::disInfo() {
 	}std::cout << std::endl;
 	std::cout << "Radius : " << this->radius << std::endl;
 }
+
+glm::vec3 Sphere::intersectRay(Ray _r) {
+	glm::vec3 tmp_vec = _r.getOriginPos() - this->center_pos;
+	float delta = (pow(glm::length(_r.getDirection()), 2) - 1)*pow(glm::length(tmp_vec), 2) + pow(glm::length(this->center_pos), 2);
+
+	return glm::vec3();
+}
+
 Triangle::Triangle() {
 	this->setType("Triangle");
 	this->setTransMat(glm::mat4(1));
 }
+
 Triangle::Triangle(glm::vec3 _v[3]) {
 	this->setType("Triangle");
 	for (int i = 0; i < 3; ++i) {
@@ -112,4 +125,8 @@ void Triangle::transObject() {
 void Triangle::setTransMat(glm::mat4 _m) {
 	Object::setTransMat(_m);
 	this->transObject();
+}
+
+glm::vec3 Triangle::intersectRay(Ray) {
+	return glm::vec3();
 }
