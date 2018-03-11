@@ -8,13 +8,9 @@ using namespace std;
 int main() {
 	bool isTest = true;
 	if (isTest) {
-		glm::vec3 tmp;
-		if (&tmp == nullptr) {
-			cout << "s" << std::endl;
-		} else {
-			cout << "a" << endl;
-		}
-			 
+		glm::vec3 tmp(1, 2, 3);
+		glm::vec3 t(1, 2,3);
+		cout <<  glm::dot(tmp,t) << endl;
 		cin.get();
 	} else {
 		string a = "scene-info/scene4-ambient.test";

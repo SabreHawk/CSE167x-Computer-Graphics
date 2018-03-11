@@ -26,7 +26,7 @@ public:
 	glm::mat4 getTransMat();
 	virtual void disInfo();
 	virtual void transObject();
-	virtual float intersectRay(Ray);
+	virtual glm::vec2 intersectRay(Ray);
 };
 
 class Sphere : public Object {
@@ -37,7 +37,7 @@ public:
 	Sphere();
 	Sphere(glm::vec3, float);
 	void disInfo();
-	float intersectRay(Ray);
+	glm::vec2 intersectRay(Ray);
 };
 
 class Triangle :public Object {
@@ -50,7 +50,7 @@ public:
 	void disInfo();
 	void transObject();
 	void setTransMat(glm::mat4 _m);
-	float intersectRay(Ray);
+	glm::vec2 intersectRay(Ray);
 };
 #endif
 
