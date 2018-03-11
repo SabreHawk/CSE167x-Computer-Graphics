@@ -1,2 +1,4 @@
-﻿  main.cpp
-  hw3-windows.vcxproj -> C:\Users\mySab\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\Solutions\hw3-windows\Debug\hw3-windows.exe
+﻿  Scene.cpp
+c:\users\zhiquan.wang\documents\sourcecode\project-repository\cse167x-computer-graphics\solutions\hw3-windows\hw3-windows\transform.h(21): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\zhiquan.wang\documents\sourcecode\project-repository\cse167x-computer-graphics\solutions\hw3-windows\hw3-windows\scene.cpp(122): warning C4244: 'argument': conversion from 'float' to 'const unsigned int', possible loss of data
+  hw3-windows.vcxproj -> C:\Users\Zhiquan.Wang\Documents\SourceCode\Project-Repository\CSE167x-Computer-Graphics\Solutions\hw3-windows\Debug\hw3-windows.exe

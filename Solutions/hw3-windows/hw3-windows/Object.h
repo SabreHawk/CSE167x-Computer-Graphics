@@ -6,24 +6,37 @@ class Object{
 private:
     std::string type;
     float size ;
-	glm::vec4 ambient;
-	glm::vec4 diffuse;
-	glm::vec4 specular;
-	glm::vec4 emission;
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+	glm::vec3 emission;
 	float shininess ;
 	glm::mat4 transform ; 
 public:
 	Object();
 	void setType(std::string);
-	void setAmbient(glm::vec4);
-	void setDiffuse(glm::vec4);
-	void setSpecular(glm::vec4);
-	void setEmission(glm::vec4);
+	void setAmbient(glm::vec3);
+	void setDiffuse(glm::vec3);
+	void setSpecular(glm::vec3);
+	void setEmission(glm::vec3);
+	void setShininess(float);
+	void setTransMat(glm::mat4);
 };
 
 class Sphere : public Object {
 private:
 	glm::vec3 center_pos;
 	float radius;
+public:
+	Sphere();
+	Sphere(glm::vec3, float);
+};
+
+class Triangle :public Object {
+private:
+	glm::vec3 vertexs[3];
+	glm::vec3 normal;
+public:
+	Triangle(glm::vec3 _v[3]);
 };
 #endif

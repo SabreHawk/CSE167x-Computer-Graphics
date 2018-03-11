@@ -5,8 +5,8 @@
 #include "Light.h"
 #include "Camera.h"
 #include "Transform.h"
-Scene::Scene() {
-}
+#include <stack>
+#include <iostream>
 
 void Scene::scene_analyzer(std::vector<std::string> _content) {
 	std::vector<std::string>::iterator itor;
@@ -17,13 +17,16 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 	glm::vec3 tmp_diffuse;
 	glm::vec3 tmp_specular;
 	glm::vec3 tmp_emission;
-	glm::vec3 tmp_shininess;
+	float tmp_shininess;
+
 	glm::vec3 tmp_lookat;
 	glm::vec3 tmp_lookfrom;
 	glm::vec3 tmp_upvec;
 	float tmp_fovy;
-
+	std::vector<glm::vec3> vertex_vec;
+	std::stack<glm::mat4> transfstack;
 	for (itor = _content.begin(); itor != _content.end(); ++itor) {
+		std::cout << *itor << std::endl;
 		tmp_str = *itor;
 
 		if ((tmp_str.find_first_not_of(" \t\r\n") != std::string::npos) && (tmp_str[0] != '#')) {
@@ -59,37 +62,103 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 					s_stream >> tmp_diffuse[i];
 				}
 			} else if (cmd == "specular") {
-				for (int i = 0; i < 3; ++i) {
+				for (int i = 0; i < 2; ++i) {
 					s_stream >> tmp_specular[i];
 				}
 			} else if (cmd == "emission") {
-				for (int i = 0; i < 3; ++i) {
+				for (int i = 0; i < 2; ++i) {
 					s_stream >> tmp_emission[i];
 				}
 			} else if (cmd == "shininess") {
-				for (int i = 0; i < 3; ++i) {
-					s_stream >> tmp_shininess[i];
-				}
+				s_stream >> tmp_shininess;
 			} else if (cmd == "size") {
 				s_stream >> this->image_width;
 				s_stream >> this->image_height;
+			} else if (cmd == "output") {
+				s_stream >> this->scene_name;
 			} else if (cmd == "camera") {
-				for (int i = 0; i < 3; ++i) {
+				for (int i = 0; i < 2; ++i) {
 					s_stream >> tmp_lookfrom[i];
 				}
-				for (int i = 0; i < 3; ++i) {
+				for (int i = 0; i < 2; ++i) {
 					s_stream >> tmp_lookat[i];
 				}
-				for (int i = 0; i < 3; ++i) {
+				for (int i = 0; i < 2; ++i) {
 					s_stream >> tmp_upvec[i];
 				}
 				s_stream >> tmp_fovy;
 				tmp_upvec = Transform::upvector(tmp_upvec, tmp_lookfrom - tmp_lookat);
 				Camera tmp_camera(tmp_lookfrom, tmp_lookat, tmp_upvec, tmp_fovy);
 				this->camera = tmp_camera;
-			} else if (cmd == "sphere" || cmd == "cube" || cmd == "teapot") {
-				Sphere tmp_sphere();
+			} else if (cmd == "sphere") {
+				glm::vec3 tmp_pos;
+				float tmp_radius;
+				for (int i = 0; i < 2; ++i) {
+					s_stream >> tmp_pos[i];
+				}
+				s_stream >> tmp_radius;
+				Sphere * tmp_sphere = new Sphere(tmp_pos,tmp_radius);
+				tmp_sphere->setAmbient(tmp_ambient);
+				tmp_sphere->setDiffuse(tmp_diffuse);
+				tmp_sphere->setEmission(tmp_emission);
+				tmp_sphere->setSpecular(tmp_specular);
+				tmp_sphere->setShininess(tmp_shininess);
+				tmp_sphere->setTransMat(transfstack.top());
 				this->object_vector.push_back(tmp_sphere);
+			} else if (cmd == "vertex") {
+				vec3 tmp_vec;
+				for (int i = 0; i < 2; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				vertex_vec.push_back(tmp_vec);
+			} else if (cmd == "Tri") {
+				vec3 tmp_vec;
+				for (int i = 0; i < 2; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				vec3 tmp_vertexs[3];
+				for (int i = 0; i < 2; ++i) {
+					for (int j = 0; j < 3; ++j) {
+						tmp_vertexs[i][j] = vertex_vec[tmp_vec[i]][j];
+					}
+				}
+				Triangle * tmp_tri = new Triangle(tmp_vertexs);
+				this->object_vector.push_back(tmp_tri);
+			} else if (cmd == "pushTransform") {
+				transfstack.push(transfstack.top());
+			} else if (cmd == "popTransform") {
+				if (transfstack.size() <= 1) {
+					std::cerr << "Stack has no elements.  Cannot Pop\n";
+				} else {
+					transfstack.pop();
+				}
+			} else if (cmd == "translate") {
+				glm::vec3 tmp_vec;
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				mat4 &T = transfstack.top();
+				mat4 M = Transform::translate(tmp_vec[0], tmp_vec[1], tmp_vec[2]);
+				T = T * M; 
+			} else if (cmd == "scale") {
+				glm::vec3 tmp_vec;
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				mat4 &T = transfstack.top();
+				mat4 M = Transform::scale(tmp_vec[0], tmp_vec[1], tmp_vec[2]);
+				T = T * M;
+			} else if (cmd == "rotate") {
+				vec4 tmp_vec;
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				float degrees;
+				s_stream >> degrees;
+				vec3 tmp_axis = glm::normalize(glm::normalize(tmp_vec));
+				mat4 T = transfstack.top();
+				mat4 M = Transform::rotate(degrees, tmp_vec);
+				T = T * M;
 			}
 		}
 	}
@@ -97,4 +166,12 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 
 void Scene::add_light(Light _light) {
 	this->light_vector.push_back(_light);
+}
+
+void Scene::light_info() {
+	std::vector<Light>::iterator itor;
+	for (itor = this->light_vector.begin(); itor != this->light_vector.end();++ itor) {
+		itor->disInfo();
+		std::cout << std::endl;
+	}
 }

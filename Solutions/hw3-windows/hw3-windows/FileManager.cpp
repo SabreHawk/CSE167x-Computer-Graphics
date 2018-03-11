@@ -35,3 +35,7 @@ void FileManager::print_content(){
 void FileManager::print_content(int _index) {
 	std::cout << content[_index] << std::endl;
 }
+
+std::vector<std::string> FileManager::getContent() {
+	return this->content;
+}

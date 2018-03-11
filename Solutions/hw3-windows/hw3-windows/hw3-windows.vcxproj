@@ -71,8 +71,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <IncludePath>C:\Users\mySab\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\Solutions\hw3-windows\hw3-windows\OpenGL-Configuration\includes;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\mySab\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\Solutions\hw3-windows\hw3-windows\OpenGL-Configuration\libraries;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Zhiquan.Wang\Documents\SourceCode\Project-Repository\CSE167x-Computer-Graphics\Solutions\hw3-windows\hw3-windows\OpenGL-Configuration\includes;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Zhiquan.Wang\Documents\SourceCode\Project-Repository\CSE167x-Computer-Graphics\Solutions\hw3-windows\hw3-windows\OpenGL-Configuration\libraries;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\Users\Zhiquan.Wang\Documents\SourceCode\Project-CPP\CSE167x-Computer-Graphics\Solutions\hw3-windows\hw3-windows\OpenGL-Configuration\includes;$(IncludePath)</IncludePath>

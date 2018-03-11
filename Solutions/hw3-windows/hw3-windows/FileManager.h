@@ -5,6 +5,9 @@
 #include <fstream>
 #include <iostream>
 class FileManager{
+private:
+	std::string file_name;
+	std::vector<std::string> content;
 public:
     FileManager();
     FileManager(std::string);
@@ -13,9 +16,7 @@ public:
     void read_file();
     void print_content();
 	void print_content(int);
-private:
-    std::string file_name;
-    std::vector<std::string> content;
+	std::vector<std::string> getContent();
 };
 
 #endif
