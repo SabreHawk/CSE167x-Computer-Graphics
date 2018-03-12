@@ -40,3 +40,23 @@ void Light::disInfo() {
 	}std::cout << std::endl;
 
 }
+
+glm::vec3 Light::getPos() {
+	return this->light_pos;
+}
+
+glm::vec3 Light::getColor() {
+	return this->light_color;
+}
+
+glm::vec3 Light::getAttenuation() {
+	return this->attenuation;
+}
+
+float Light::computeDecy(float _d) {
+	float out_d = 0;
+	for (int i = 0; i < 3; ++i) {
+		out_d += this->attenuation[i] * pow(_d, i);
+	}
+	return out_d;
+}

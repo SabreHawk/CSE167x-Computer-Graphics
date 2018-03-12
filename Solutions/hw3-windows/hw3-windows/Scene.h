@@ -8,6 +8,7 @@
 #include "Light.h"
 class Scene {
 private:
+	//Params
 	int image_height;
 	int image_width;
 	int max_ray_depth;
@@ -15,6 +16,8 @@ private:
 	std::vector<Light> light_vector;
 	std::vector<Object*> object_vector;
 	Camera camera;
+	//Method
+	glm::vec3 traceRay(Ray);
 public:
 	Scene() {
 	}

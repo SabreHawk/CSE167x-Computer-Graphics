@@ -8,6 +8,29 @@
 #include <stack>
 #include <iostream>
 
+glm::vec3 Scene::traceRay(Ray _r) {
+	std::vector<Object*>::iterator itor;
+	glm::vec2 tmp_t;
+	glm::vec3 tmp_pos;
+	for (itor = this->object_vector.begin(); itor != this->object_vector.end(); ++itor) {
+		if ((*itor)->getType() == "Sphere") {
+			tmp_t = (*itor)->intersectRay(_r);
+			if (tmp_t[0] == -1 && tmp_t[1] == -1) {//No Intersection
+				continue;
+			} else if (tmp_t[0] == tmp_t[1] && tmp_t[0] >= 0) {
+				tmp_pos = _r.getOriginPos()+tmp_t[0]*_r.getDirection();
+			} else if (tmp_t[0] * tmp_t[1] <= 0) {
+				float t = tmp_t[0] > 0 ? tmp_t[0] : tmp_t[1];
+				tmp_pos = _r.getOriginPos() + t * _r.getDirection();
+			} else if (tmp_t[0] > 0 && tmp_t[1] > 0) {
+				float t = tmp_t[0] < tmp_t[1] ? tmp_t[0] : tmp_t[1];
+				tmp_pos = _r.getOriginPos() + t * _r.getDirection();
+			}
+		}
+	}
+	return glm::vec3();
+}
+
 void Scene::scene_analyzer(std::vector<std::string> _content) {
 	std::vector<std::string>::iterator itor;
 	std::string tmp_str;

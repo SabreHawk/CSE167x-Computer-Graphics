@@ -14,6 +14,10 @@ public:
 	Light(int, glm::vec3, glm::vec3, glm::vec3);
 	void setAttenuation(glm::vec3);
 	void disInfo();
+	glm::vec3 getPos();
+	glm::vec3 getColor();
+	glm::vec3 getAttenuation();
+	float computeDecy(float);
 };
 #endif // ! 
 

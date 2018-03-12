@@ -19,8 +19,8 @@ int main() {
 
 		Scene tmp_scene;
 		tmp_scene.scene_analyzer(file_manager.getContent());
-		/*tmp_scene.disLightInfo();
-		tmp_scene.disObjectInfo();*/
+		//tmp_scene.disLightInfo();
+		//tmp_scene.disObjectInfo();
 		tmp_scene.disSceneInfo();
 		cin.get();
 	}

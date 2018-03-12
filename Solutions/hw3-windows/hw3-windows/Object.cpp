@@ -1,4 +1,5 @@
 #include "Object.h"
+#include <cmath>
 #include <iostream>
 Object::Object() {
 }
@@ -61,6 +62,30 @@ glm::vec2 Object::intersectRay(Ray) {
 	return glm::vec2();
 }
 
+std::string Object::getType() {
+	return this->type;
+}
+
+glm::vec3 Object::getAmbient() {
+	return this->ambient;
+}
+
+glm::vec3 Object::getDiffuse() {
+	return this->diffuse;
+}
+
+glm::vec3 Object::getSpecular() {
+	return this->specular;
+}
+
+glm::vec3 Object::getEmission() {
+	return this->emission;
+}
+
+float Object::getShininess() {
+	return this->shininess;
+}
+
 Sphere::Sphere() {
 
 }
@@ -82,13 +107,15 @@ void Sphere::disInfo() {
 
 glm::vec2 Sphere::intersectRay(Ray _r) {
 	glm::vec3 tmp_vec = _r.getOriginPos() - this->center_pos;
+	glm::vec2 out_paras;
 	float delta = (pow(glm::length(_r.getDirection()), 2) - 1)*pow(glm::length(tmp_vec), 2) + pow(glm::length(this->center_pos), 2);
 	if (delta < 0) {
 		return glm::vec2(-1,-1);
 	} else {
-
+		out_paras[0] = -1 * glm::dot(tmp_vec, _r.getDirection()) + sqrt(delta);
+		out_paras[1] = -1 * glm::dot(tmp_vec, _r.getDirection()) - sqrt(delta);
 	}
-
+	return out_paras;
 }
 
 Triangle::Triangle() {
@@ -101,6 +128,8 @@ Triangle::Triangle(glm::vec3 _v[3]) {
 	for (int i = 0; i < 3; ++i) {
 		vertexs[i] = _v[i];
 	}
+	this->setTransMat(glm::mat4(1)); 
+	this->normal = glm::normalize(glm::cross(vertexs[1] - vertexs[0], vertexs[2] - vertexs[0]));
 }
 
 void Triangle::disInfo() {
@@ -133,4 +162,16 @@ void Triangle::setTransMat(glm::mat4 _m) {
 
 glm::vec2 Triangle::intersectRay(Ray) {
 	return glm::vec2();
+}
+
+glm::vec3 Triangle::getNormal() {
+	return this->normal;
+}
+
+glm::vec3 Triangle::computeLambertLight(glm::vec3 _pos,Light _l) {
+	float light_dis = glm::length(_pos - _l.getPos());
+	glm::vec3 light_dir = _l.getPos() - _pos;
+	glm::vec3 i = _l.getColor() / _l.computeDecy(light_dis);
+	float nDotL = glm::dot(this->normal, light_dir);
+	return i * this->getDiffuse() *_l.getColor() * max(nDotL, 0);
 }
