@@ -8,26 +8,29 @@
 #include <stack>
 #include <iostream>
 
-glm::vec3 Scene::traceRay(Ray _r) {
+glm::vec3 Scene::traceRay(Ray _r,int _layer) {
 	std::vector<Object*>::iterator itor;
+	std::vector<Object*>::iterator nearest_itor;
+	float min_dis = -1;
 	glm::vec2 tmp_t;
 	glm::vec3 tmp_pos;
+
 	for (itor = this->object_vector.begin(); itor != this->object_vector.end(); ++itor) {
 		if ((*itor)->getType() == "Sphere") {
 			tmp_t = (*itor)->intersectRay(_r);
-			if (tmp_t[0] == -1 && tmp_t[1] == -1) {//No Intersection
-				continue;
-			} else if (tmp_t[0] == tmp_t[1] && tmp_t[0] >= 0) {
-				tmp_pos = _r.getOriginPos()+tmp_t[0]*_r.getDirection();
-			} else if (tmp_t[0] * tmp_t[1] <= 0) {
-				float t = tmp_t[0] > 0 ? tmp_t[0] : tmp_t[1];
-				tmp_pos = _r.getOriginPos() + t * _r.getDirection();
-			} else if (tmp_t[0] > 0 && tmp_t[1] > 0) {
-				float t = tmp_t[0] < tmp_t[1] ? tmp_t[0] : tmp_t[1];
-				tmp_pos = _r.getOriginPos() + t * _r.getDirection();
-			}
+		} else if ((*itor)->getType() == "Triangle") {
+			tmp_t = (*itor)->intersectRay(_r);
 		}
+
+		
 	}
+
+	glm::vec3 layer_color = (*itor)->getAmbient() + (*itor)->getEmission();
+	std::vector<Light>::iterator light_itor;
+	for (light_itor = this->light_vector.begin(); light_itor != this->light_vector.end(); ++itor) {
+		layer_color += (*itor)->computeLambertLight(tmp_pos, *light_itor) + (*itor)->computePhongLight(tmp_pos, *light_itor, _r);
+	}
+
 	return glm::vec3();
 }
 

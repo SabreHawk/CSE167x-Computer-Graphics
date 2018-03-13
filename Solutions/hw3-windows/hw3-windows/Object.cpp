@@ -1,6 +1,6 @@
 #include "Object.h"
-#include <cmath>
 #include <iostream>
+#include <algorithm>
 Object::Object() {
 }
 
@@ -58,10 +58,6 @@ void Object::disInfo() {
 void Object::transObject() {
 }
 
-glm::vec2 Object::intersectRay(Ray) {
-	return glm::vec2();
-}
-
 std::string Object::getType() {
 	return this->type;
 }
@@ -104,18 +100,27 @@ void Sphere::disInfo() {
 	}std::cout << std::endl;
 	std::cout << "Radius : " << this->radius << std::endl;
 }
-
-glm::vec2 Sphere::intersectRay(Ray _r) {
+float Sphere::intersectRay(Ray _r) {
 	glm::vec3 tmp_vec = _r.getOriginPos() - this->center_pos;
-	glm::vec2 out_paras;
+	glm::vec2 paras;
+	float out_dis;
 	float delta = (pow(glm::length(_r.getDirection()), 2) - 1)*pow(glm::length(tmp_vec), 2) + pow(glm::length(this->center_pos), 2);
 	if (delta < 0) {
-		return glm::vec2(-1,-1);
+		return -1;
 	} else {
-		out_paras[0] = -1 * glm::dot(tmp_vec, _r.getDirection()) + sqrt(delta);
-		out_paras[1] = -1 * glm::dot(tmp_vec, _r.getDirection()) - sqrt(delta);
+		paras[0] = -1 * glm::dot(tmp_vec, _r.getDirection()) + sqrt(delta);
+		paras[1] = -1 * glm::dot(tmp_vec, _r.getDirection()) - sqrt(delta);
+		if (paras[0] == -1 && paras[1] == -1) {//No Intersection
+			return -1;
+		} else if (paras[0] == paras[1] && paras[0] >= 0) {
+			out_dis = paras[0];
+		} else if (paras[0] * paras[1] <= 0) {
+			out_dis = paras[0] > 0 ? paras[0] : paras[1];
+		} else if (paras[0] > 0 && paras[1] > 0) {
+			out_dis = paras[0] < paras[1] ? paras[0] : paras[1];
+		}
 	}
-	return out_paras;
+	return out_dis;
 }
 
 Triangle::Triangle() {
@@ -144,11 +149,11 @@ void Triangle::disInfo() {
 
 void Triangle::transObject() {
 	glm::vec4 tmp_vec[3];
-	for (int i = 0; i < 3; ++i) {
-		tmp_vec[i] = glm::vec4(vertexs[i], 1); 
-	}
-	for (int i = 0; i < 3; ++i) {
-		tmp_vec[i] = this->getTransMat()*tmp_vec[i];
+	for (int i = 0; i < 3; ++i) { 
+ 		tmp_vec[i] = glm::vec4(vertexs[i], 1); 
+ 	}
+ 	for (int i = 0; i < 3; ++i) {
+ 		tmp_vec[i] = this->getTransMat()*tmp_vec[i];
 	}
 	for (int i = 0; i < 3; ++i) {
 		vertexs[i] = glm::vec3(tmp_vec[i]);
@@ -160,8 +165,22 @@ void Triangle::setTransMat(glm::mat4 _m) {
 	this->transObject();
 }
 
-glm::vec2 Triangle::intersectRay(Ray) {
-	return glm::vec2();
+float Triangle::intersectRay(Ray _r) {
+	if (glm::dot(_r.getDirection(), this->normal) == 0) {
+		return -1;
+	}
+	float tmp_t = (glm::dot(this->vertexs[0], this->normal) - glm::dot(_r.getOriginPos(), this->normal)) / glm::dot(_r.getDirection(), this->normal);
+	glm::vec3 tmp_pos = _r.getOriginPos() + tmp_t * _r.getDirection();
+	glm::vec3 edge10 = this->vertexs[1] - this->vertexs[0];
+	glm::vec3 edge21 = this->vertexs[2] - this->vertexs[1];
+	glm::vec3 edge02 = this->vertexs[0] - this->vertexs[2];
+	if (glm::dot(glm::cross(edge10, tmp_pos - this->vertexs[0]), this->normal) >= 0 &&
+		glm::dot(glm::cross(edge21, tmp_pos - this->vertexs[1]), this->normal) >= 0 &&
+		glm::dot(glm::cross(edge02, tmp_pos - this->vertexs[2]), this->normal) >= 0) {
+		return tmp_t;
+	} else {
+		return -1;
+	}
 }
 
 glm::vec3 Triangle::getNormal() {
@@ -173,5 +192,23 @@ glm::vec3 Triangle::computeLambertLight(glm::vec3 _pos,Light _l) {
 	glm::vec3 light_dir = _l.getPos() - _pos;
 	glm::vec3 i = _l.getColor() / _l.computeDecy(light_dis);
 	float nDotL = glm::dot(this->normal, light_dir);
-	return i * this->getDiffuse() *_l.getColor() * max(nDotL, 0);
+	if (nDotL < 0) {
+		nDotL = 0;
+	}
+	return i * this->getDiffuse() *_l.getColor() * nDotL;
 }
+
+glm::vec3 Triangle::computePhongLight(glm::vec3 _pos,Light _l,Ray _r) {
+	float light_dis = glm::length(_pos - _l.getPos()); 
+	glm::vec3 light_dir = _l.getPos() - _pos;
+	glm::vec3 eye_dir = _r.getOriginPos() - _pos;
+	glm::vec3 half_vec = glm::normalize(light_dir + eye_dir);
+	glm::vec3 i = _l.getColor() / _l.computeDecy(light_dis);
+	float nDotL = glm::dot(this->normal, half_vec);
+	if (nDotL < 0) {
+		nDotL = 0;
+	}
+	return i * this->getSpecular()*_l.getColor()*pow(nDotL, getShininess());
+}
+
+ 

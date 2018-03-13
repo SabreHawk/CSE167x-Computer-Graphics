@@ -32,7 +32,9 @@ public:
 	virtual float getShininess();
 	virtual glm::mat4 getTransMat();
 	virtual void transObject();
-	virtual glm::vec2 intersectRay(Ray);
+	virtual float intersectRay(Ray);
+	virtual glm::vec3 computeLambertLight(glm::vec3, Light);
+	virtual glm::vec3 computePhongLight(glm::vec3, Light, Ray);
 	virtual void disInfo();
 
 };
@@ -45,7 +47,7 @@ public:
 	Sphere();
 	Sphere(glm::vec3, float);
 	void disInfo();
-	glm::vec2 intersectRay(Ray);
+	float intersectRay(Ray);
 };
 
 class Triangle :public Object {
@@ -58,10 +60,10 @@ public:
 	void disInfo();
 	void transObject();
 	void setTransMat(glm::mat4 _m);
-	glm::vec2 intersectRay(Ray);
+	float intersectRay(Ray);
 	glm::vec3 getNormal();
-	glm::vec3 computeLambertLight(glm::vec3,Light);
-	glm::vec3 computePhongLight(Light);
+	glm::vec3 computeLambertLight(glm::vec3, Light);
+	glm::vec3 computePhongLight(glm::vec3, Light, Ray);
 };
 #endif
 

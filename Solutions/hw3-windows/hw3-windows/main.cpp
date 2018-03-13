@@ -3,15 +3,13 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include "Scene.h"
+#include <algorithm>
 using namespace std;
 
 int main() {
 	bool isTest = true;
 	if (isTest) {
-		glm::vec3 tmp(1, 2, 3);
-		glm::vec3 t(1, 2,3);
-		cout <<  glm::dot(tmp,t) << endl;
-		cin.get();
+		int a = max(1.2, 2);
 	} else {
 		string a = "scene-info/scene4-ambient.test";
 		FileManager file_manager(a);

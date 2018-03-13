@@ -17,7 +17,7 @@ private:
 	std::vector<Object*> object_vector;
 	Camera camera;
 	//Method
-	glm::vec3 traceRay(Ray);
+	glm::vec3 traceRay(Ray,int);
 public:
 	Scene() {
 	}
