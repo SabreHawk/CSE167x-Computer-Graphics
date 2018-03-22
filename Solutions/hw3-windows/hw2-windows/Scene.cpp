@@ -17,39 +17,44 @@ void Scene::savePic() {
 }
 
 glm::vec3 Scene::traceRay(Ray _r,int _layer) {
-	if (_layer > 5) {
+	if (_layer > this->max_ray_depth) {
 		return glm::vec3(0);
 	}
 	std::vector<Object*>::iterator itor;
 	std::vector<Object*>::iterator nearest_itor;
 	float min_dis = -1;
-	float tmp_t;
+	float target_t = 0;
+	float tmp_t = INFINITY;
 	glm::vec3 tmp_pos;
 	//Find the nearest intersected object;
 	for (itor = this->object_vector.begin(); itor != this->object_vector.end(); ++itor) {
 		if ((*itor)->getType() == "Sphere") {
 			tmp_t = (*itor)->intersectRay(_r);
+			if (tmp_t != INFINITY) {
+				glm::vec3 tmp_ins = glm::vec3((*itor)->getTransMat() * glm::vec4(_r.getOriginPos() + tmp_t * _r.getDirection(), 0));
+				tmp_t = glm::length(_r.getOriginPos() - tmp_ins);
+			}
 		} else if ((*itor)->getType() == "Triangle") {
 			tmp_t = (*itor)->intersectRay(_r);
 		}
-		if (tmp_t == -1) {//No Interesction
+		if (tmp_t == INFINITY) {//No Interesction
 			continue;
-		} else if (min_dis == -1 || tmp_t < min_dis) {
-			min_dis = tmp_t;
+		} else if (min_dis == -1 || abs(tmp_t) < abs(min_dis)) {
+			min_dis = abs(tmp_t);
+			target_t = tmp_t;
 			nearest_itor = itor;
 		}
 	}
 	if (min_dis == -1) {
 		return glm::vec3(0);
 	}
-	tmp_pos = _r.getDirection() + tmp_t * _r.getOriginPos();
+	tmp_pos = _r.getDirection() + target_t * _r.getOriginPos();
 	Ray next_ray(tmp_pos, (*nearest_itor)->getReflectionRay(_r));
 	glm::vec3 layer_color = (*nearest_itor)->getAmbient() + (*nearest_itor)->getEmission();
 	std::vector<Light>::iterator light_itor;
-	for (light_itor = this->light_vector.begin(); light_itor != this->light_vector.end(); ++itor) {
-		layer_color += (*itor)->computeLambertLight(tmp_pos, *light_itor) + (*itor)->computePhongLight(tmp_pos, *light_itor, _r);
+	for (light_itor = this->light_vector.begin(); light_itor != this->light_vector.end(); ++light_itor) {
+		layer_color += (*nearest_itor)->computeLambertLight(tmp_pos, *light_itor) + (*nearest_itor)->computePhongLight(tmp_pos, *light_itor, _r);
 	}
-
 	return layer_color + traceRay(next_ray, _layer + 1);
 }
 
@@ -65,9 +70,11 @@ Ray Scene::genRay(int _i, int _j) {
 Scene::Scene(int _h, int _w, int _d, std::string _n)
 	:image_height(_h), image_width(_w), max_ray_depth(_d), scene_name(_n) {
 	this->image_mat = new BYTE[3 * _h * _d];
+	this->max_ray_depth = 5;
 }
 
 Scene::Scene() {
+	this->max_ray_depth = 5;
 }
 
 void Scene::scene_analyzer(std::vector<std::string> _content) {
@@ -138,98 +145,99 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 			} else if (cmd == "size") {
 				s_stream >> this->image_width;
 				s_stream >> this->image_height;
+				this->image_mat = new BYTE[3 * this->image_width * this->image_height];
 			} else if (cmd == "output") {
 				s_stream >> this->scene_name;
-			} else if (cmd == "camera")
+			} else if (cmd == "camera") {
 				for (int i = 0; i < 3; ++i) {
 					s_stream >> tmp_lookfrom[i];
 				}
-			for (int i = 0; i < 3; ++i) {
-				s_stream >> tmp_lookat[i];
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_lookat[i];
+				}
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_upvec[i];
+				}
+				s_stream >> tmp_fovy;
+				tmp_upvec = Transform::upvector(tmp_upvec, tmp_lookfrom - tmp_lookat);
+				Camera tmp_camera(tmp_lookfrom, tmp_lookat, tmp_upvec, tmp_fovy);
+				this->camera = tmp_camera;
+			} else if (cmd == "sphere") {
+				glm::vec3 tmp_pos;
+				float tmp_radius;
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_pos[i];
+				}
+				s_stream >> tmp_radius;
+				Sphere * tmp_sphere = new Sphere(tmp_pos, tmp_radius);
+				tmp_sphere->setAmbient(tmp_ambient);
+				tmp_sphere->setDiffuse(tmp_diffuse);
+				tmp_sphere->setEmission(tmp_emission);
+				tmp_sphere->setSpecular(tmp_specular);
+				tmp_sphere->setShininess(tmp_shininess);
+				tmp_sphere->setTransMat(transfstack.top());
+				this->object_vector.push_back(tmp_sphere);
+			} else if (cmd == "vertex") {
+				vec3 tmp_vec;
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				vertex_vec.push_back(tmp_vec);
+			} else if (cmd == "tri") {
+				glm::vec3 tmp_vec;
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				glm::vec3 tmp_vertexs[3];
+				for (int i = 0; i < 3; ++i) {
+					tmp_vertexs[i] = vertex_vec[int(tmp_vec[i])];
+				}
+				Triangle * tmp_tri = new Triangle(tmp_vertexs);
+				tmp_tri->setAmbient(tmp_ambient);
+				tmp_tri->setDiffuse(tmp_diffuse);
+				tmp_tri->setEmission(tmp_emission);
+				tmp_tri->setSpecular(tmp_specular);
+				tmp_tri->setShininess(tmp_shininess);
+				tmp_tri->setTransMat(transfstack.top());
+				this->object_vector.push_back(tmp_tri);
+			} else if (cmd == "pushTransform") {
+				transfstack.push(transfstack.top());
+			} else if (cmd == "popTransform") {
+				if (transfstack.size() < 1) {
+					std::cerr << "Stack has no elements.  Cannot Pop\n";
+				} else {
+					transfstack.pop();
+				}
+			} else if (cmd == "translate") {
+				glm::vec3 tmp_vec;
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				mat4 &T = transfstack.top();
+				mat4 M = Transform::translate(tmp_vec[0], tmp_vec[1], tmp_vec[2]);
+				T = T * M;
+			} else if (cmd == "scale") {
+				glm::vec3 tmp_vec;
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				mat4 &T = transfstack.top();
+				mat4 M = Transform::scale(tmp_vec[0], tmp_vec[1], tmp_vec[2]);
+				T = T * M;
+			} else if (cmd == "rotate") {
+				vec3 tmp_vec;
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> tmp_vec[i];
+				}
+				float degrees;
+				s_stream >> degrees;
+				vec3 tmp_axis = glm::normalize(glm::normalize(tmp_vec));
+				mat4 T = transfstack.top();
+				mat4 M = mat4(Transform::rotate(degrees, tmp_vec));
+				T = T * M;
+			} else if (cmd == "maxdepth") {
+				s_stream >> this->max_ray_depth;
 			}
-			for (int i = 0; i < 3; ++i) {
-				s_stream >> tmp_upvec[i];
-			}
-			s_stream >> tmp_fovy;
-			tmp_upvec = Transform::upvector(tmp_upvec, tmp_lookfrom - tmp_lookat);
-			Camera tmp_camera(tmp_lookfrom, tmp_lookat, tmp_upvec, tmp_fovy);
-			this->camera = tmp_camera;
-		} else if (cmd == "sphere") {
-			glm::vec3 tmp_pos;
-			float tmp_radius;
-			for (int i = 0; i < 3; ++i) {
-				s_stream >> tmp_pos[i];
-			}
-			s_stream >> tmp_radius;
-			Sphere * tmp_sphere = new Sphere(tmp_pos, tmp_radius);
-			tmp_sphere->setAmbient(tmp_ambient);
-			tmp_sphere->setDiffuse(tmp_diffuse);
-			tmp_sphere->setEmission(tmp_emission);
-			tmp_sphere->setSpecular(tmp_specular);
-			tmp_sphere->setShininess(tmp_shininess);
-			tmp_sphere->setTransMat(transfstack.top());
-			this->object_vector.push_back(tmp_sphere);
-		} else if (cmd == "vertex") {
-			vec3 tmp_vec;
-			for (int i = 0; i < 3; ++i) {
-				s_stream >> tmp_vec[i];
-			}
-			vertex_vec.push_back(tmp_vec);
-		} else if (cmd == "tri") {
-			glm::vec3 tmp_vec;
-			for (int i = 0; i < 3; ++i) {
-				s_stream >> tmp_vec[i];
-			}
-			glm::vec3 tmp_vertexs[3];
-			for (int i = 0; i < 3; ++i) {
-				tmp_vertexs[i] = vertex_vec[int(tmp_vec[i])];
-				
-			}
-			Triangle * tmp_tri = new Triangle(tmp_vertexs);
-			tmp_tri->setAmbient(tmp_ambient);
-			tmp_tri->setDiffuse(tmp_diffuse);
-			tmp_tri->setEmission(tmp_emission);
-			tmp_tri->setSpecular(tmp_specular);
-			tmp_tri->setShininess(tmp_shininess);
-			tmp_tri->setTransMat(transfstack.top());
-			this->object_vector.push_back(tmp_tri);
-		} else if (cmd == "pushTransform") {
-			transfstack.push(transfstack.top());
-		} else if (cmd == "popTransform") {
-			if (transfstack.size() < 1) {
-				std::cerr << "Stack has no elements.  Cannot Pop\n";
-			} else {
-				transfstack.pop();
-			}
-		} else if (cmd == "translate") {
-			glm::vec3 tmp_vec;
-			for (int i = 0; i < 3; ++i) {
-				s_stream >> tmp_vec[i];
-			}
-			mat4 &T = transfstack.top();
-			mat4 M = Transform::translate(tmp_vec[0], tmp_vec[1], tmp_vec[2]);
-			T = T * M;
-		} else if (cmd == "scale") {
-			glm::vec3 tmp_vec;
-			for (int i = 0; i < 3; ++i) {
-				s_stream >> tmp_vec[i];
-			}
-			mat4 &T = transfstack.top();
-			mat4 M = Transform::scale(tmp_vec[0], tmp_vec[1], tmp_vec[2]);
-			T = T * M;
-		} else if (cmd == "rotate") {
-			vec3 tmp_vec;
-			for (int i = 0; i < 3; ++i) {
-				s_stream >> tmp_vec[i];
-			}
-			float degrees;
-			s_stream >> degrees;
-			vec3 tmp_axis = glm::normalize(glm::normalize(tmp_vec));
-			mat4 T = transfstack.top();
-			mat4 M = mat4(Transform::rotate(degrees, tmp_vec));
-			T = T * M;
-		} else if (cmd == "camera") {
-
 		}
 	}
 }
@@ -239,14 +247,17 @@ void Scene::add_light(Light _light) {
 }
 
 void Scene::render() {
+	int pixel_counter = 0;
 	for (int i = 0; i < this->image_width; ++i) {
 		for (int j = 0; j < this->image_height; ++j) {
 			Ray tmp_ray = this->genRay(i, j);
 			glm::vec3 tmp_color = this->traceRay(tmp_ray, 0);
 			for (int k = 0; k < 3; ++k) {
-				this->image_mat[this->image_width * i + j + k] = BYTE(tmp_color[k] * 255);
+				this->image_mat[pixel_counter*3+k] = BYTE(tmp_color[k] * 255);
 			}
+			pixel_counter++;
 		}
+		std::cout << "Percentage : " << pixel_counter * 100 / (this->image_height*this->image_width) << "%\r";
 	}
 	savePic();
 }

@@ -100,11 +100,12 @@ void Sphere::disInfo() {
 
 float Sphere::intersectRay(Ray & _r) {
 	glm::vec3 tmp_vec = _r.getOriginPos() - this->center_pos;
+	tmp_vec = glm::vec3(this->getTransMat()*glm::vec4(tmp_vec, 0));
 	glm::vec2 paras;
-	float out_dis;
+	float out_dis = -1;
 	float delta = (pow(glm::length(_r.getDirection()), 2) - 1)*pow(glm::length(tmp_vec), 2) + pow(glm::length(this->center_pos), 2);
 	if (delta < 0) {
-		return -1;
+		return INFINITY;
 	} else {
 		paras[0] = -1 * glm::dot(tmp_vec, _r.getDirection()) + sqrt(delta);
 		paras[1] = -1 * glm::dot(tmp_vec, _r.getDirection()) - sqrt(delta);
@@ -129,8 +130,9 @@ glm::vec3 Sphere::getReflectionRay(Ray &_r) {
 	if (tmp_t == -1) {
 		return glm::vec3(0, 0, 0);
 	}
-	glm::vec3 tmp_pos = _r.getOriginPos() + tmp_t * _r.getDirection();
-	glm::vec3 tmp_normal = glm::normalize(tmp_pos - this->center_pos);
+
+	glm::vec3 tmp_pos = glm::vec3(this->getTransMat() * glm::vec4(_r.getOriginPos() + tmp_t * _r.getDirection(), 0));
+	glm::vec3 tmp_normal = glm::vec3(glm::normalize(glm::transpose(glm::inverse(this->getTransMat()))*glm::vec4((tmp_pos - this->center_pos), 0)));
 	return glm::normalize(2 * glm::dot(_r.getDirection(), tmp_normal)*tmp_normal - _r.getDirection());
 }
 
@@ -141,7 +143,7 @@ glm::vec3 Sphere::computeLambertLight(glm::vec3 & _pos, Light & _l) {
 	if (_l.getType() == 1) {
 		i = 1 / _l.computeDecy(light_dis);
 	}
-	glm::vec3 s_normal = _pos - this->center_pos;
+	glm::vec3 s_normal = glm::vec3(glm::normalize(glm::transpose(glm::inverse(this->getTransMat()))*glm::vec4((_pos - this->center_pos), 0)));
 	float nDotL = glm::dot(s_normal, light_dir);
 	if (nDotL < 0) {
 		nDotL = 0;
@@ -156,7 +158,7 @@ glm::vec3 Sphere::computePhongLight(glm::vec3 & _pos, Light & _l,Ray & _r) {
 	if (_l.getType() == 1) {
 		i = 1 / _l.computeDecy(light_dis);
 	}
-	glm::vec3 s_normal = _pos - this->center_pos;
+	glm::vec3 s_normal = glm::vec3(glm::normalize(glm::transpose(glm::inverse(this->getTransMat()))*glm::vec4((_pos - this->center_pos), 0)));
 	glm::vec3 eye_dir = _r.getOriginPos() - _pos;
 	glm::vec3 half_vec = glm::normalize(eye_dir + light_dir);
 	float nDotL = glm::dot(s_normal, half_vec);
@@ -209,8 +211,9 @@ void Triangle::setTransMat(glm::mat4 _m) {
 
 float Triangle::intersectRay(Ray & _r) {
 	if (glm::dot(_r.getDirection(), this->normal) == 0) {
-		return -1;
+		return INFINITY;
 	}
+	//std::cout << "Tri :\n" << this->vertexs[0][1] << " " << this->vertexs[0][1] << " " << this->vertexs[0][2] << std::endl;
 	float tmp_t = (glm::dot(this->vertexs[0], this->normal) - glm::dot(_r.getOriginPos(), this->normal)) / glm::dot(_r.getDirection(), this->normal);
 	glm::vec3 tmp_pos = _r.getOriginPos() + tmp_t * _r.getDirection();
 	glm::vec3 edge10 = this->vertexs[1] - this->vertexs[0];
@@ -221,7 +224,7 @@ float Triangle::intersectRay(Ray & _r) {
 		glm::dot(glm::cross(edge02, tmp_pos - this->vertexs[2]), this->normal) >= 0) {
 		return tmp_t;
 	} else {
-		return -1;
+		return INFINITY;
 	}
 }
 
