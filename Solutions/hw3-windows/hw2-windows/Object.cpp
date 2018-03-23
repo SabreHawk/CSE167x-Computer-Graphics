@@ -100,15 +100,16 @@ void Sphere::disInfo() {
 
 float Sphere::intersectRay(Ray & _r) {
 	glm::vec3 tmp_vec = _r.getOriginPos() - this->center_pos;
-	tmp_vec = glm::vec3(this->getTransMat()*glm::vec4(tmp_vec, 0));
+	//tmp_vec = glm::vec3(this->getTransMat()*glm::vec4(tmp_vec, 0));
 	glm::vec2 paras;
 	float out_dis = -1;
-	float delta = (pow(glm::length(_r.getDirection()), 2) - 1)*pow(glm::length(tmp_vec), 2) + pow(glm::length(this->center_pos), 2);
+	glm::vec3 trans_dir = glm::vec3(this->getTransMat() * glm::vec4(_r.getDirection(), 0));
+	float delta = (pow(glm::length(trans_dir), 2) - 1)*pow(glm::length(tmp_vec), 2) + pow(glm::length(this->center_pos), 2);
 	if (delta < 0) {
 		return INFINITY;
 	} else {
-		paras[0] = -1 * glm::dot(tmp_vec, _r.getDirection()) + sqrt(delta);
-		paras[1] = -1 * glm::dot(tmp_vec, _r.getDirection()) - sqrt(delta);
+		paras[0] = -1 * glm::dot(tmp_vec, trans_dir) + sqrt(delta);
+		paras[1] = -1 * glm::dot(tmp_vec, trans_dir) - sqrt(delta);
 		if (paras[0] == -1 && paras[1] == -1) {//No Intersection
 			return -1;
 		} else if (paras[0] == paras[1] && paras[0] >= 0) {
@@ -119,6 +120,9 @@ float Sphere::intersectRay(Ray & _r) {
 			out_dis = paras[0] < paras[1] ? paras[0] : paras[1];
 		}
 	}
+	if (out_dis < 0) {
+		return INFINITY;
+	}
 	return out_dis;
 }
 
@@ -127,7 +131,7 @@ void Sphere::transObject() {
 
 glm::vec3 Sphere::getReflectionRay(Ray &_r) {
 	float tmp_t = intersectRay(_r);
-	if (tmp_t == -1) {
+	if (tmp_t == INFINITY) {
 		return glm::vec3(0, 0, 0);
 	}
 
@@ -177,8 +181,8 @@ Triangle::Triangle(glm::vec3 _v[3]) {
 	for (int i = 0; i < 3; ++i) {
 		vertexs[i] = _v[i];
 	}
-	this->setTransMat(glm::mat4(1)); 
-	this->normal = glm::normalize(glm::cross(vertexs[1] - vertexs[0], vertexs[2] - vertexs[0]));
+	//this->setTransMat(glm::mat4(1)); 
+	this->normal = glm::normalize(glm::cross(vertexs[2]- vertexs[0], vertexs[1] - vertexs[0]));
 }
 
 void Triangle::disInfo() {
@@ -206,7 +210,7 @@ void Triangle::transObject() {
 
 void Triangle::setTransMat(glm::mat4 _m) {
 	Object::setTransMat(_m);
-	this->transObject();
+	//this->transObject();
 }
 
 float Triangle::intersectRay(Ray & _r) {
@@ -216,12 +220,18 @@ float Triangle::intersectRay(Ray & _r) {
 	//std::cout << "Tri :\n" << this->vertexs[0][1] << " " << this->vertexs[0][1] << " " << this->vertexs[0][2] << std::endl;
 	float tmp_t = (glm::dot(this->vertexs[0], this->normal) - glm::dot(_r.getOriginPos(), this->normal)) / glm::dot(_r.getDirection(), this->normal);
 	glm::vec3 tmp_pos = _r.getOriginPos() + tmp_t * _r.getDirection();
+	for (int i = 0; i < 3; ++i) {
+		std::cout << tmp_pos[i] << " LLL  ";
+	}
 	glm::vec3 edge10 = this->vertexs[1] - this->vertexs[0];
 	glm::vec3 edge21 = this->vertexs[2] - this->vertexs[1];
 	glm::vec3 edge02 = this->vertexs[0] - this->vertexs[2];
 	if (glm::dot(glm::cross(edge10, tmp_pos - this->vertexs[0]), this->normal) >= 0 &&
 		glm::dot(glm::cross(edge21, tmp_pos - this->vertexs[1]), this->normal) >= 0 &&
 		glm::dot(glm::cross(edge02, tmp_pos - this->vertexs[2]), this->normal) >= 0) {
+		if (tmp_t < 0) {
+			return INFINITY;
+		}
 		return tmp_t;
 	} else {
 		return INFINITY;

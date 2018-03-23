@@ -1,5 +1,5 @@
 #include "Camera.h"
-
+float pi = 3.14159265f;
 Camera::Camera() {
 
 }
@@ -34,9 +34,9 @@ float Camera::getFovY() {
 	return this->fov_y;
 }
 
-float Camera::getFovX(int _w,int _h) {
-	return glm::tan(this->fov_y / 2)*_w / _h;
-}
+//float Camera::getFovX(int _w,int _h) {
+//	return glm::tan(this->fov_y * pi/180/ 2)*_w / _h;
+//}
 
 glm::vec3 Camera::getU() {
 	return this->u;

@@ -20,7 +20,7 @@ public:
 	glm::vec3 getUpVector();
 	glm::vec3 getDirection();
 	float getFovY();
-	float getFovX(int,int);
+	//float getFovX(int,int);
 	glm::vec3 getU();
 	glm::vec3 getV();
 	glm::vec3 getW();

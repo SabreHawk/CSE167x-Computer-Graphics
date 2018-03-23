@@ -9,7 +9,9 @@
 #include <GL/glut.h>
 #include <stack>
 #include <iostream>
+//
 
+//
 void Scene::savePic() {
 	FIBITMAP *img = FreeImage_ConvertFromRawBits(image_mat, this->image_width, this->image_height, this->image_width * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, true);
 	std::cout << "Saving Screenshot : " << this->scene_name.c_str() << "\n";
@@ -34,6 +36,9 @@ glm::vec3 Scene::traceRay(Ray _r,int _layer) {
 				glm::vec3 tmp_ins = glm::vec3((*itor)->getTransMat() * glm::vec4(_r.getOriginPos() + tmp_t * _r.getDirection(), 0));
 				tmp_t = glm::length(_r.getOriginPos() - tmp_ins);
 			}
+			//
+			
+			//
 		} else if ((*itor)->getType() == "Triangle") {
 			tmp_t = (*itor)->intersectRay(_r);
 		}
@@ -59,10 +64,10 @@ glm::vec3 Scene::traceRay(Ray _r,int _layer) {
 }
 
 Ray Scene::genRay(int _i, int _j) {
-	float fovx = this->camera.getFovX(this->image_width, this->image_height);
-	glm::vec3 alpha = this->camera.getU()* (glm::tan(fovx / 2)*(_j - this->image_width / 2) / (this->image_width / 2));
-	glm::vec3 beta = this->camera.getV() * (glm::tan(this->camera.getFovY() / 2)*(this->image_height / 2 - _i) / this->image_width);
-	glm::vec3 neg_gama = this->camera.getW();
+	float aspect = this->image_width / (float)this->image_height;
+	glm::vec3 alpha = this->camera.getU()* (glm::tan(this->camera.getFovY()*pi / 180 / 2)*aspect*(float(_j + 0.5) - this->image_width / 2) / (this->image_width / 2));
+	glm::vec3 beta = this->camera.getV() * (glm::tan(this->camera.getFovY()*pi / 180 / 2)*(this->image_height / 2 - float(_i + 0.5)) / (this->image_height/2));
+	glm::vec3 neg_gama = float(-1) * this->camera.getW();
 	glm::vec3 dir = glm::normalize(alpha + beta + neg_gama);
 	return Ray(this->camera.getCameraPos(), dir);
 }
@@ -190,7 +195,7 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 				}
 				glm::vec3 tmp_vertexs[3];
 				for (int i = 0; i < 3; ++i) {
-					tmp_vertexs[i] = vertex_vec[int(tmp_vec[i])];
+					tmp_vertexs[i] = glm::vec3(transfstack.top()*glm::vec4(vertex_vec[int(tmp_vec[i])], 1));
 				}
 				Triangle * tmp_tri = new Triangle(tmp_vertexs);
 				tmp_tri->setAmbient(tmp_ambient);
