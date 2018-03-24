@@ -16,6 +16,7 @@ private:
 	std::string scene_name;
 	std::vector<Light> light_vector;
 	std::vector<Object*> object_vector;
+	glm::vec3 attenuation;
 	Camera camera;
 	BYTE * image_mat;
 	//Method

@@ -9,6 +9,7 @@
 #include <GL/glut.h>
 #include <stack>
 #include <iostream>
+#include <fstream>
 //
 
 //
@@ -24,43 +25,50 @@ glm::vec3 Scene::traceRay(Ray _r,int _layer) {
 	}
 	std::vector<Object*>::iterator itor;
 	std::vector<Object*>::iterator nearest_itor;
-	float min_dis = -1;
+	float min_dis = INFINITY;
 	float target_t = 0;
 	float tmp_t = INFINITY;
 	glm::vec3 tmp_pos;
-	//Find the nearest intersected object;
 	for (itor = this->object_vector.begin(); itor != this->object_vector.end(); ++itor) {
 		if ((*itor)->getType() == "Sphere") {
 			tmp_t = (*itor)->intersectRay(_r);
-			if (tmp_t != INFINITY) {
-				glm::vec3 tmp_ins = glm::vec3((*itor)->getTransMat() * glm::vec4(_r.getOriginPos() + tmp_t * _r.getDirection(), 0));
-				tmp_t = glm::length(_r.getOriginPos() - tmp_ins);
-			}
-			//
-			
-			//
 		} else if ((*itor)->getType() == "Triangle") {
 			tmp_t = (*itor)->intersectRay(_r);
 		}
 		if (tmp_t == INFINITY) {//No Interesction
 			continue;
-		} else if (min_dis == -1 || abs(tmp_t) < abs(min_dis)) {
-			min_dis = abs(tmp_t);
-			target_t = tmp_t;
+		} else if (tmp_t < min_dis) {
+			min_dis = tmp_t;
 			nearest_itor = itor;
+			glm::vec3 tmp_p = _r.getOriginPos() + min_dis * _r.getDirection();
 		}
 	}
-	if (min_dis == -1) {
+	if (min_dis == INFINITY) {
 		return glm::vec3(0);
 	}
-	tmp_pos = _r.getDirection() + target_t * _r.getOriginPos();
+	tmp_pos = _r.getDirection() + min_dis * _r.getOriginPos();
+	if ((*nearest_itor)->getType() == "Triangle") {
+		tmp_pos = glm::vec3((*nearest_itor)->getTransMat()*glm::vec4(tmp_pos,1));
+	}
+	
 	Ray next_ray(tmp_pos, (*nearest_itor)->getReflectionRay(_r));
 	glm::vec3 layer_color = (*nearest_itor)->getAmbient() + (*nearest_itor)->getEmission();
 	std::vector<Light>::iterator light_itor;
 	for (light_itor = this->light_vector.begin(); light_itor != this->light_vector.end(); ++light_itor) {
-		layer_color += (*nearest_itor)->computeLambertLight(tmp_pos, *light_itor) + (*nearest_itor)->computePhongLight(tmp_pos, *light_itor, _r);
+		float i = 1;
+		if (light_itor->getType() == 1) {
+			i = 1 / light_itor->computeDecy(glm::length(light_itor->getPos() - tmp_pos));
+		}
+		for (int i = 0; i < 3; ++i) {
+
+		}
+		layer_color += i * ((*nearest_itor)->computeLambertLight(tmp_pos, *light_itor) + (*nearest_itor)->computePhongLight(tmp_pos, *light_itor, _r));
 	}
-	return layer_color + traceRay(next_ray, _layer + 1);
+	glm::vec3 tmp_s = glm::vec3(1, 1, 1);
+	if (_layer >= 1) {
+		tmp_s = (*nearest_itor)->getSpecular();
+	}
+	return layer_color + tmp_s * traceRay(next_ray, _layer + 1);
 }
 
 Ray Scene::genRay(int _i, int _j) {
@@ -68,6 +76,10 @@ Ray Scene::genRay(int _i, int _j) {
 	glm::vec3 alpha = this->camera.getU()* (glm::tan(this->camera.getFovY()*pi / 180 / 2)*aspect*(float(_j + 0.5) - this->image_width / 2) / (this->image_width / 2));
 	glm::vec3 beta = this->camera.getV() * (glm::tan(this->camera.getFovY()*pi / 180 / 2)*(this->image_height / 2 - float(_i + 0.5)) / (this->image_height/2));
 	glm::vec3 neg_gama = float(-1) * this->camera.getW();
+	//std::cout << "Camera" << std::endl;
+	//for (int i = 0; i < 3; ++i) {
+	//	//std::cout << this->get[i] << " ";
+	//}std::cout << std::endl;
 	glm::vec3 dir = glm::normalize(alpha + beta + neg_gama);
 	return Ray(this->camera.getCameraPos(), dir);
 }
@@ -76,10 +88,12 @@ Scene::Scene(int _h, int _w, int _d, std::string _n)
 	:image_height(_h), image_width(_w), max_ray_depth(_d), scene_name(_n) {
 	this->image_mat = new BYTE[3 * _h * _d];
 	this->max_ray_depth = 5;
+	this->attenuation = glm::vec3(1, 0, 0);
 }
 
 Scene::Scene() {
 	this->max_ray_depth = 5;
+	this->attenuation = glm::vec3(1, 0, 0);
 }
 
 void Scene::scene_analyzer(std::vector<std::string> _content) {
@@ -91,6 +105,7 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 	glm::vec3 tmp_diffuse(0, 0, 0);
 	glm::vec3 tmp_specular(0, 0, 0);
 	glm::vec3 tmp_emission(0, 0, 0);
+	glm::vec3 tmp_attenuation(1, 0, 0);
 	float tmp_shininess = 0;
 
 	glm::vec3 tmp_lookat;
@@ -147,6 +162,10 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 				}
 			} else if (cmd == "shininess") {
 				s_stream >> tmp_shininess;
+			} else if (cmd == "attenuation") {
+				for (int i = 0; i < 3; ++i) {
+					s_stream >> this->attenuation[i];
+				}
 			} else if (cmd == "size") {
 				s_stream >> this->image_width;
 				s_stream >> this->image_height;
@@ -237,7 +256,7 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 				float degrees;
 				s_stream >> degrees;
 				vec3 tmp_axis = glm::normalize(glm::normalize(tmp_vec));
-				mat4 T = transfstack.top();
+				mat4 &T = transfstack.top();
 				mat4 M = mat4(Transform::rotate(degrees, tmp_vec));
 				T = T * M;
 			} else if (cmd == "maxdepth") {
@@ -252,18 +271,21 @@ void Scene::add_light(Light _light) {
 }
 
 void Scene::render() {
+	std::ofstream outfile("im.txt");
 	int pixel_counter = 0;
-	for (int i = 0; i < this->image_width; ++i) {
-		for (int j = 0; j < this->image_height; ++j) {
+	for (int i = 0; i < this->image_height; ++i) {
+		for (int j = 0; j < this->image_width; ++j) {
 			Ray tmp_ray = this->genRay(i, j);
 			glm::vec3 tmp_color = this->traceRay(tmp_ray, 0);
 			for (int k = 0; k < 3; ++k) {
-				this->image_mat[pixel_counter*3+k] = BYTE(tmp_color[k] * 255);
-			}
+				this->image_mat[pixel_counter*3+k] = tmp_color[k] * 255;
+				outfile << tmp_color[k] * 255 << " ";
+			}outfile << std::endl;
 			pixel_counter++;
 		}
 		std::cout << "Percentage : " << pixel_counter * 100 / (this->image_height*this->image_width) << "%\r";
 	}
+	outfile.close();
 	savePic();
 }
 

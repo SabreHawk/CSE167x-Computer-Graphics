@@ -1,36 +1,32 @@
 #include "FileManager.h"
 #include <glm/glm.hpp>
 #include "Scene.h"
+#include "Transform.h"
 #include <algorithm>
 using namespace std;
 using namespace glm;
 int main() {
-	bool isTest = true;
+	bool isTest = false;
 	if (isTest) {
-		glm::vec3 tmp_v_a[3] = { {1,1,0},{0,1,1},{1,0,1} };
-		Ray tmp_r(glm::vec3(0, 0, 0), glm::vec3(0, 0, 1));
-		Triangle t(tmp_v_a);
-		glm::vec3 n = t.getNormal();
-
-		//Ray tmp_n = t.getReflectionRay(tmp_r);
-		std::cout << t.intersectRay(tmp_r) << std::endl;
-		glm::vec3 tmp_p = tmp_r.getOriginPos() + t.intersectRay(tmp_r)*tmp_r.getDirection();
-
+		Ray tmp_r(glm::vec3(0, 0, 5), glm::vec3(0, 0, -1));
+		Sphere tmp_s(glm::vec3(0,0,0),2);
+		glm::mat4 tmp_m = Transform::translate(0,0,-1)*Transform::scale(2, 2, 2);
+		tmp_s.setTransMat(tmp_m);
+		float tmp_t = tmp_s.intersectRay(tmp_r);
+		std::cout << "t : " << tmp_t << std::endl;
+		glm::vec3 tmp_p = tmp_r.getOriginPos() + tmp_t * tmp_r.getDirection();
+		std::cout << "Inter Point " << std::endl;
 		for (int i = 0; i < 3; ++i) {
-			std::cout << tmp_p[i] << std::endl;
-		}
-		//
-		vec3 AT = vec3(1,1,0);
-		vec3 BT = vec3(0,1,1);
-		vec3 CT = vec3(1,0,1);
-		vec3 abT = BT - AT;
-		vec3 acT = CT - AT;
-		vec3 normalC = glm::normalize(cross(abT, acT));
-		float tt = (dot(AT, normalC) - dot(tmp_r.getOriginPos(), normalC)) / (dot(tmp_r.getDirection(), normalC));
-		std::cout << tt << std::endl;
+			std::cout << tmp_p[i] << " ";
+		}std::cout << std::endl;
+		glm::vec3 ref = tmp_s.getReflectionRay(tmp_r);
+		std::cout << "ref dir " << std::endl;
+		for (int i = 0; i < 3; ++i) {
+			std::cout << ref[i] << " ";
+		}std::cout << std::endl;
 		cin.get();
 	} else {
-		string a = "scene-info/mytest.test";
+		string a = "scene-info/scene4-ambient.test";
 		FileManager file_manager(a);
 		file_manager.read_file();
 
