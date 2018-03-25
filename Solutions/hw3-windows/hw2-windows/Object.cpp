@@ -31,6 +31,7 @@ void Object::setShininess(float _s) {
 void Object::setTransMat(glm::mat4 _m) {
 	this->transform = _m;
 }
+
 glm::mat4 Object::getTransMat() {
 	return this->transform;
 }
@@ -99,96 +100,69 @@ void Sphere::disInfo() {
 	std::cout << "Radius : " << this->radius << std::endl;
 }
 
-float Sphere::intersectRay(Ray & _r) {
-
-	glm::vec3 trans_p = glm::vec3(glm::inverse(this->getTransMat())*glm::vec4(_r.getOriginPos(), 1));
+IntersectionInfo Sphere::intersectRay(Ray & _r) {
+	glm::vec4 tmp_pp=  glm::inverse(this->getTransMat())*glm::vec4(_r.getOriginPos(), 1);
+	glm::vec3 trans_p = glm::vec3(tmp_pp.x / tmp_pp.w, tmp_pp.y / tmp_pp.w, tmp_pp.z / tmp_pp.w);
 	glm::vec3 trans_dir = glm::normalize(glm::vec3(glm::inverse(this->getTransMat()) * glm::vec4(_r.getDirection(), 0)));
+	
 	Ray tmp_r(trans_p, trans_dir);
-	//std::cout << "Trans Vec " << std::endl;
-	//for (int i = 0; i < 3; ++i) {
-	//	std::cout << _r.getOriginPos()[i] << " ";
-	//}std::cout << std::endl;
-	glm::vec3 tmp_vec = tmp_r.getOriginPos() - this->center_pos;
+	glm::vec3 tmp_vec = tmp_r.getOriginPos() - this->center_pos;		
 	float a = glm::dot(tmp_r.getDirection(), tmp_r.getDirection());
 	float b = 2 * glm::dot(tmp_r.getDirection(), tmp_vec);
 	float c = glm::dot(tmp_vec, tmp_vec) - pow(this->radius, 2);
 	float delta = b * b - 4 * a * c;
-	if (delta < 0) {
-		return INFINITY;
+	if (delta <= 0) {
+		return IntersectionInfo(false);
+		//return INFINITY;
 	} 
 	float root_0 = (-1 * sqrt(delta) - b) / (2 * a);
 	float root_1 = (sqrt(delta) - b) / (2 * a);
 	float tmp_out = 0;
 	if (root_0 * root_1 <= 0) {
-		return INFINITY;
+		return IntersectionInfo(false);
 	} else {
 		tmp_out = std::min(root_0, root_1);
 	}
-	//std::cout << "PRE : " << tmp_out << std::endl;
-	glm::vec3 tmp_ins_p = glm::vec3(this->getTransMat() * glm::vec4(trans_p + tmp_out * trans_dir, 1));
-	//std::cout << "Trans Pos " << std::endl;
-	//for (int i = 0; i < 3; ++i) {
-	//	std::cout << trans_p[i] << " ";
-	//}std::cout << std::endl;
-	//std::cout << "Trans dir " << std::endl;
-	//for (int i = 0; i < 3; ++i) {
-	//	std::cout << trans_p[i] << " ";
-	//}std::cout << std::endl;
-	//std::cout << "PRE : " << tmp_out << std::endl;
-	//std::cout << "tmp_ins_p " << std::endl;
-	//for (int i = 0; i < 3; ++i) {
-	//	std::cout << tmp_ins_p[i] << " ";
-	//}std::cout << std::endl;
+	if (tmp_out < 0.00001f) {
+		return IntersectionInfo(false);
+	}
+	glm::vec4 world_ins_pos = this->getTransMat() * glm::vec4(trans_p + tmp_out * trans_dir, 1);
+	glm::vec3 tmp_ins_p = glm::vec3(world_ins_pos.x / world_ins_pos.w, world_ins_pos.y / world_ins_pos.w, world_ins_pos.z / world_ins_pos.w);
+	glm::vec3 tmp_normal = glm::normalize(trans_p + tmp_out * trans_dir - this->center_pos);
+	tmp_normal = glm::normalize(glm::vec3(glm::inverse(glm::transpose(this->getTransMat())) * glm::vec4(tmp_normal, 0)));
 	tmp_out = glm::length(tmp_ins_p - _r.getOriginPos());
-
-	
-	return tmp_out;
+	return IntersectionInfo(true,tmp_out,tmp_ins_p,tmp_normal);
 }
 
 void Sphere::transObject() {
 }
 
+glm::vec3 Sphere::getNormal(glm::vec3 _pos) {
+	glm::vec4 tmp_pp = glm::inverse(this->getTransMat()) * glm::vec4(_pos, 1);
+	glm::vec3 tmp_ppp = glm::vec3(tmp_pp.x / tmp_pp.w, tmp_pp.y / tmp_pp.w, tmp_pp.z / tmp_pp.w);
+	return glm::normalize(glm::vec3(glm::transpose(glm::inverse(this->getTransMat()))*glm::vec4((tmp_ppp - this->center_pos), 0)));
+}
+
 glm::vec3 Sphere::getReflectionRay(Ray &_r) {
-	float tmp_t = intersectRay(_r);
-	if (tmp_t == INFINITY) {
-		return glm::vec3(0, 0, 0);
-	}
-
-	glm::vec3 tmp_pos = glm::vec3(this->getTransMat() * glm::vec4(_r.getOriginPos() + tmp_t * _r.getDirection(), 0));
-	glm::vec3 tmp_normal = glm::vec3(glm::normalize(glm::transpose(glm::inverse(this->getTransMat()))*glm::vec4((tmp_pos - this->center_pos), 0)));
-	return glm::normalize(2 * glm::dot(_r.getDirection(), tmp_normal)*tmp_normal - _r.getDirection());
+	IntersectionInfo tmp_ins_info = intersectRay(_r);
+	return glm::normalize(2 * glm::dot(float(-1)*_r.getDirection(), tmp_ins_info.getNormal())*tmp_ins_info.getNormal() + _r.getDirection());
 }
 
-glm::vec3 Sphere::computeLambertLight(glm::vec3 & _pos, Light & _l) {
-	float light_dis = glm::length(_pos - _l.getPos());
-	glm::vec3 light_dir = _l.getPos() - _pos;
-	float i = 1;
-	//if (_l.getType() == 1) {
-	//	i = 1 / _l.computeDecy(light_dis);
-	//}
-	glm::vec3 s_normal = glm::vec3(glm::normalize(glm::transpose(glm::inverse(this->getTransMat()))*glm::vec4((_pos - this->center_pos), 0)));
-	float nDotL = glm::dot(s_normal, light_dir);
+glm::vec3 Sphere::computeLambertLight(glm::vec3 & _l_dir,glm::vec3 & _s_normal, Light & _l) {
+	float nDotL = glm::dot(_s_normal, _l_dir);
 	if (nDotL < 0) {
 		nDotL = 0;
 	}
-	return i * this->getDiffuse()*_l.getColor() * nDotL;
+	return  this->getDiffuse()*_l.getColor() * nDotL;
 }
 
-glm::vec3 Sphere::computePhongLight(glm::vec3 & _pos, Light & _l,Ray & _r) {
-	float light_dis = glm::length(_pos - _l.getPos());
-	glm::vec3 light_dir = glm::normalize(_l.getPos() - _pos);
-	float i = 1;
-	//if (_l.getType() == 1) {
-	//	i = 1 / _l.computeDecy(light_dis);
-	//}
-	glm::vec3 s_normal = glm::vec3(glm::normalize(glm::transpose(glm::inverse(this->getTransMat()))*glm::vec4((_pos - this->center_pos), 0)));
-	glm::vec3 eye_dir = _r.getOriginPos() - _pos;
-	glm::vec3 half_vec = glm::normalize(eye_dir + light_dir);
-	float nDotL = glm::dot(s_normal, half_vec);
+glm::vec3 Sphere::computePhongLight(glm::vec3 & _l_dir,glm::vec3 &_e_dir,glm::vec3 &_s_normal, Light & _l) {
+	glm::vec3 half_vec = glm::normalize(_e_dir + _l_dir);
+	float nDotL = glm::dot(_s_normal, half_vec);
 	if (nDotL < 0) {
 		nDotL = 0;
 	}
-	return i * this->getSpecular()*_l.getColor()*pow(nDotL, getShininess());
+	return this->getSpecular()*_l.getColor()*pow(nDotL, this->getShininess());
 }
 Triangle::Triangle() {
 	this->setType("Triangle");
@@ -201,7 +175,7 @@ Triangle::Triangle(glm::vec3 _v[3]) {
 		vertexs[i] = _v[i];
 	}
 	//this->setTransMat(glm::mat4(1)); 
-	this->normal = glm::normalize(glm::cross(vertexs[2]- vertexs[0], vertexs[1] - vertexs[0]));
+	this->normal = glm::normalize(glm::cross(vertexs[1]- vertexs[0], vertexs[2] - vertexs[0]));
 }
 
 void Triangle::disInfo() {
@@ -212,6 +186,10 @@ void Triangle::disInfo() {
 			std::cout << vertexs[i][j] << " ";;
 		}std::cout << std::endl;
 	}
+	std::cout << "Normal : " << std::endl;
+	for (int i = 0; i < 3; ++i) {
+		std::cout << this->normal[i] << " ";
+	}std::cout << std::endl;
 }
 
 void Triangle::transObject() {
@@ -232,57 +210,51 @@ void Triangle::setTransMat(glm::mat4 _m) {
 	//this->transObject();
 }
 
-float Triangle::intersectRay(Ray & _r) {
-	if (glm::dot(_r.getDirection(), this->normal) == 0) {
-		return INFINITY;
+IntersectionInfo Triangle::intersectRay(Ray & _r) {
+	if (glm::dot(_r.getDirection(), this->normal)>= 0) {
+		return IntersectionInfo(false);
 	}
 	float tmp_t = (glm::dot(this->vertexs[0], this->normal) - glm::dot(_r.getOriginPos(), this->normal)) / glm::dot(_r.getDirection(), this->normal);
-	if (tmp_t < 0) {
-		return INFINITY;
+	if (tmp_t <= 0) {
+		return IntersectionInfo(false);
 	}
 	glm::vec3 tmp_pos = _r.getOriginPos() + tmp_t * _r.getDirection();
-	glm::vec3 edge20 = this->vertexs[2] - this->vertexs[0];
-	glm::vec3 edge12 = this->vertexs[1] - this->vertexs[2];
-	glm::vec3 edge01 = this->vertexs[0] - this->vertexs[1];
-	if (glm::dot(glm::cross(edge20, tmp_pos - this->vertexs[0]), this->normal) >= 0 &&
-		glm::dot(glm::cross(edge12, tmp_pos - this->vertexs[2]), this->normal) >= 0 &&
-		glm::dot(glm::cross(edge01, tmp_pos - this->vertexs[1]), this->normal) >= 0) {
-		return tmp_t;
+	glm::vec3 edge10 = this->vertexs[1] - this->vertexs[0];
+	glm::vec3 edge21 = this->vertexs[2] - this->vertexs[1];
+	glm::vec3 edge02 = this->vertexs[0] - this->vertexs[2];
+	if (glm::dot(glm::cross(edge10, tmp_pos - this->vertexs[0]), this->normal) >= 0 &&
+		glm::dot(glm::cross(edge21, tmp_pos - this->vertexs[1]), this->normal) >= 0 &&
+		glm::dot(glm::cross(edge02, tmp_pos - this->vertexs[2]), this->normal) >= 0) {
+		return IntersectionInfo(true, tmp_t, tmp_pos, this->normal);
 	} else {
-		return INFINITY;
+		return IntersectionInfo(false);
 	}
 }
 
-glm::vec3 Triangle::getNormal() {
+glm::vec3 Triangle::getNormal(glm::vec3 _p) {
 	return this->normal;
 }
 
-glm::vec3 Triangle::computeLambertLight(glm::vec3 & _pos,Light & _l) {
-	float light_dis = glm::length(_pos - _l.getPos());
-	glm::vec3 light_dir = _l.getPos() - _pos;
-	glm::vec3 i = _l.getColor() / _l.computeDecy(light_dis);
-	float nDotL = glm::dot(this->normal, light_dir);
+glm::vec3 Triangle::computeLambertLight(glm::vec3 & _l_dir,glm::vec3 &_t_normal,Light & _l) {
+	float nDotL = glm::dot(_t_normal, _l_dir);
 	if (nDotL < 0) {
 		nDotL = 0;
 	}
-	return i * this->getDiffuse() *_l.getColor() * nDotL;
+	return this->getDiffuse() *_l.getColor() * nDotL;
 }
 
-glm::vec3 Triangle::computePhongLight(glm::vec3 & _pos,Light & _l,Ray & _r) {
-	float light_dis = glm::length(_pos - _l.getPos()); 
-	glm::vec3 light_dir = _l.getPos() - _pos;
-	glm::vec3 eye_dir = _r.getOriginPos() - _pos;
-	glm::vec3 half_vec = glm::normalize(light_dir + eye_dir);
-	glm::vec3 i = _l.getColor() / _l.computeDecy(light_dis);
-	float nDotL = glm::dot(this->normal, half_vec);
+glm::vec3 Triangle::computePhongLight(glm::vec3 & _l_dir, glm::vec3 & _e_dir, glm::vec3 & _t_norma, Light & _l) {
+	glm::vec3 half_vec = glm::normalize(_l_dir + _e_dir);
+	float nDotL = glm::dot(_t_norma, half_vec);
 	if (nDotL < 0) {
 		nDotL = 0;
 	}
-	return i * this->getSpecular()*_l.getColor()*pow(nDotL, getShininess());
+	return  this->getSpecular()*_l.getColor()*pow(nDotL, getShininess());
 }
 
 glm::vec3 Triangle::getReflectionRay(Ray & _r) {
-	return glm::normalize(2 * glm::dot(float(-1)*_r.getDirection(), this->normal)*this->normal + _r.getDirection());
+	IntersectionInfo tmp_ins_info = intersectRay(_r);
+	return glm::normalize(2 * glm::dot(float(-1)*_r.getDirection(), tmp_ins_info.getNormal())*tmp_ins_info.getNormal() + _r.getDirection());
 }
 
  

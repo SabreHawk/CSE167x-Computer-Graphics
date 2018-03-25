@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include "Ray.h"
 #include "Light.h"
+#include "IntersectionInfo.h"
 
 class Object{
 private:
@@ -29,12 +30,13 @@ public:
 	virtual glm::vec3 getDiffuse();
 	virtual glm::vec3 getSpecular();
 	virtual glm::vec3 getEmission();
+	virtual glm::vec3 getNormal(glm::vec3=glm::vec3(0)) = 0;
 	virtual float getShininess();
 	virtual glm::mat4 getTransMat();
 	virtual void transObject() = 0;
-	virtual float intersectRay(Ray &) = 0;
-	virtual glm::vec3 computeLambertLight(glm::vec3 &, Light &) = 0;
-	virtual glm::vec3 computePhongLight(glm::vec3 &, Light &, Ray &) = 0;
+	virtual IntersectionInfo intersectRay(Ray &) = 0;
+	virtual glm::vec3 computeLambertLight(glm::vec3 &, glm::vec3 &, Light &) = 0;
+	virtual glm::vec3 computePhongLight(glm::vec3 &, glm::vec3 &, glm::vec3 &, Light &) = 0;
 	virtual void disInfo();
 	virtual glm::vec3 getReflectionRay(Ray &) = 0;
 };
@@ -47,10 +49,11 @@ public:
 	Sphere();
 	Sphere(glm::vec3, float);
 	void disInfo();
-	float intersectRay(Ray &);
+	IntersectionInfo intersectRay(Ray &);
 	void transObject();
-	glm::vec3 computeLambertLight(glm::vec3 &, Light &);
-	glm::vec3 computePhongLight(glm::vec3 &, Light &, Ray &);
+	glm::vec3 getNormal(glm::vec3);
+	glm::vec3 computeLambertLight(glm::vec3 &, glm::vec3 &, Light &);
+	glm::vec3 computePhongLight(glm::vec3 &, glm::vec3 &, glm::vec3 &, Light &);
 	glm::vec3 getReflectionRay(Ray &);
 };
 
@@ -64,11 +67,11 @@ public:
 	void disInfo();
 	void transObject();
 	void setTransMat(glm::mat4 _m);
-	float intersectRay(Ray &);
-	glm::vec3 getNormal();
-	glm::vec3 computeLambertLight(glm::vec3 &, Light &);
-	glm::vec3 computePhongLight(glm::vec3 &, Light &, Ray &);
+	IntersectionInfo intersectRay(Ray &);
+	glm::vec3 computeLambertLight(glm::vec3 &, glm::vec3 &, Light &);
+	glm::vec3 computePhongLight(glm::vec3 &, glm::vec3 &, glm::vec3 &, Light &);
 	glm::vec3 getReflectionRay(Ray &);
+	glm::vec3 getNormal(glm::vec3=glm::vec3(0));
 };
 #endif
 

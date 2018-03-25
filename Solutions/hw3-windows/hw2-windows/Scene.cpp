@@ -20,55 +20,56 @@ void Scene::savePic() {
 }
 
 glm::vec3 Scene::traceRay(Ray _r,int _layer) {
-	if (_layer > this->max_ray_depth) {
+	if (_layer >= this->max_ray_depth) {
 		return glm::vec3(0);
 	}
+	//Find Nearest Object 
 	std::vector<Object*>::iterator itor;
 	std::vector<Object*>::iterator nearest_itor;
 	float min_dis = INFINITY;
-	float target_t = 0;
-	float tmp_t = INFINITY;
 	glm::vec3 tmp_pos;
+	IntersectionInfo tmp_ins_info;
+	IntersectionInfo final_ins_info;
 	for (itor = this->object_vector.begin(); itor != this->object_vector.end(); ++itor) {
-		if ((*itor)->getType() == "Sphere") {
-			tmp_t = (*itor)->intersectRay(_r);
-		} else if ((*itor)->getType() == "Triangle") {
-			tmp_t = (*itor)->intersectRay(_r);
-		}
-		if (tmp_t == INFINITY) {//No Interesction
+			tmp_ins_info = (*itor)->intersectRay(_r);
+		if (tmp_ins_info.getIsIns() == false) {//No Interesction
 			continue;
-		} else if (tmp_t < min_dis) {
-			min_dis = tmp_t;
+		} else if (tmp_ins_info.getDis() < min_dis &&  tmp_ins_info.getDis()>0.00001f) {
+			min_dis = tmp_ins_info.getDis();
+			final_ins_info = tmp_ins_info;
 			nearest_itor = itor;
-			glm::vec3 tmp_p = _r.getOriginPos() + min_dis * _r.getDirection();
 		}
 	}
 	if (min_dis == INFINITY) {
 		return glm::vec3(0);
 	}
-	tmp_pos = _r.getDirection() + min_dis * _r.getOriginPos();
-	if ((*nearest_itor)->getType() == "Triangle") {
-		tmp_pos = glm::vec3((*nearest_itor)->getTransMat()*glm::vec4(tmp_pos,1));
+	if (min_dis < 0) {
+		std::cout << "A";
 	}
+	tmp_pos = final_ins_info.getPos();
 	
-	Ray next_ray(tmp_pos, (*nearest_itor)->getReflectionRay(_r));
+	//Render Object 
 	glm::vec3 layer_color = (*nearest_itor)->getAmbient() + (*nearest_itor)->getEmission();
 	std::vector<Light>::iterator light_itor;
+	glm::vec3 tmp_light_dir;
+	glm::vec3 tmp_eye_dir;
 	for (light_itor = this->light_vector.begin(); light_itor != this->light_vector.end(); ++light_itor) {
 		float i = 1;
 		if (light_itor->getType() == 1) {
-			i = 1 / light_itor->computeDecy(glm::length(light_itor->getPos() - tmp_pos));
+			i = 1 / light_itor->computeDecy(glm::length(light_itor->getPos() - tmp_pos), this->attenuation);
+			tmp_light_dir = glm::normalize(light_itor->getPos() - final_ins_info.getPos());
+		} else {
+			tmp_light_dir = glm::normalize((light_itor->getPos()));
 		}
-		for (int i = 0; i < 3; ++i) {
+		if (!isVisToLight(final_ins_info.getPos(), *light_itor)) {
+			continue;
+		}
 
-		}
-		layer_color += i * ((*nearest_itor)->computeLambertLight(tmp_pos, *light_itor) + (*nearest_itor)->computePhongLight(tmp_pos, *light_itor, _r));
+		tmp_eye_dir = glm::normalize(_r.getOriginPos() - final_ins_info.getPos());
+		layer_color += i * ((*nearest_itor)->computeLambertLight(tmp_light_dir, final_ins_info.getNormal(), *light_itor) + (*nearest_itor)->computePhongLight(tmp_light_dir, tmp_eye_dir, final_ins_info.getNormal(), *light_itor));
 	}
-	glm::vec3 tmp_s = glm::vec3(1, 1, 1);
-	if (_layer >= 1) {
-		tmp_s = (*nearest_itor)->getSpecular();
-	}
-	return layer_color + tmp_s * traceRay(next_ray, _layer + 1);
+	Ray next_ray(tmp_pos, (*nearest_itor)->getReflectionRay(_r));
+	return   (layer_color)+(*nearest_itor)->getSpecular() * traceRay(next_ray, _layer + 1);
 }
 
 Ray Scene::genRay(int _i, int _j) {
@@ -146,7 +147,7 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 				this->add_light(tmp_light);
 			} else if (cmd == "ambient") {
 				for (int i = 0; i < 3; ++i) {
-					s_stream >> tmp_ambient[i];
+					s_stream >> float(tmp_ambient[i]);
 				}
 			} else if (cmd == "diffuse") {
 				for (int i = 0; i < 3; ++i) {
@@ -214,7 +215,8 @@ void Scene::scene_analyzer(std::vector<std::string> _content) {
 				}
 				glm::vec3 tmp_vertexs[3];
 				for (int i = 0; i < 3; ++i) {
-					tmp_vertexs[i] = glm::vec3(transfstack.top()*glm::vec4(vertex_vec[int(tmp_vec[i])], 1));
+					glm::vec4 tmp_pp = transfstack.top()*glm::vec4(vertex_vec[int(tmp_vec[i])], 1);
+					tmp_vertexs[i] = glm::vec3(tmp_pp.x / tmp_pp.w, tmp_pp.y / tmp_pp.w, tmp_pp.z / tmp_pp.w);
 				}
 				Triangle * tmp_tri = new Triangle(tmp_vertexs);
 				tmp_tri->setAmbient(tmp_ambient);
@@ -278,15 +280,41 @@ void Scene::render() {
 			Ray tmp_ray = this->genRay(i, j);
 			glm::vec3 tmp_color = this->traceRay(tmp_ray, 0);
 			for (int k = 0; k < 3; ++k) {
-				this->image_mat[pixel_counter*3+k] = tmp_color[k] * 255;
-				outfile << tmp_color[k] * 255 << " ";
+				this->image_mat[pixel_counter * 3 + k] = float(tmp_color[2-k]) * 255;
+				outfile << float(tmp_color[k]) << " ";
 			}outfile << std::endl;
 			pixel_counter++;
 		}
-		std::cout << "Percentage : " << pixel_counter * 100 / (this->image_height*this->image_width) << "%\r";
+		if(pixel_counter%300==0){
+			std::cout << "Percentage : " << pixel_counter * 100 / (this->image_height*this->image_width) << "%\r";
+		}
+		
 	}
 	outfile.close();
 	savePic();
+}
+
+int Scene::isVisToLight(glm::vec3 _p, Light & _l) {
+	Ray tmp_r(_p, glm::normalize(_l.getPos() - _p));
+	std::vector<Object*>::iterator itor;
+	IntersectionInfo tmp_ins_info;
+	for (itor = this->object_vector.begin(); itor != this->object_vector.end(); ++itor) {
+		tmp_ins_info = (*itor)->intersectRay(tmp_r);
+		if (tmp_ins_info.getIsIns() == true) {// Interesction
+			float pToLightDis;
+			if (_l.getType() == 1) {
+				pToLightDis = glm::length(_l.getPos() - _p);
+			} else {
+				return 0;
+			}
+
+			float pToObjectDis = tmp_ins_info.getDis();
+			if (pToLightDis > pToObjectDis) {
+				return 0;
+			}
+		}
+	}
+	return 1;
 }
 
 void Scene::disLightInfo() {

@@ -11,7 +11,7 @@ private:
 public:
 	Light();
 	Light(int, glm::vec3, glm::vec3);
-	Light(int, glm::vec3, glm::vec3, glm::vec3);
+	//Light(int, glm::vec3, glm::vec3);
 	//void setAttenuation(glm::vec3);
 	void disInfo();
 	int getType();

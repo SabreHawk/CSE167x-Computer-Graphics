@@ -3,26 +3,16 @@
 #include <iostream>
 
 Light::Light() {
-	attenuation = glm::vec3(1, 0, 0);
+	//attenuation = glm::vec3(1, 0, 0);
 }
 
 Light::Light(int _type, glm::vec3 _pos, glm::vec3 _color) {
 	type = _type;
 	light_pos = _pos;
 	light_color = _color;
-	attenuation = glm::vec3(1, 0, 0);
+	//attenuation = glm::vec3(1, 0, 0);
 }
 
-Light::Light(int _type,glm::vec3 _pos, glm::vec3 _color,glm::vec3 _att) {
-	type = _type;
-	light_pos = _pos;
-	light_color = _color;
-	attenuation = _att;
-}
-
-void Light::setAttenuation(glm::vec3 _att) {
-	attenuation = _att;
-}
 
 void Light::disInfo() {
 	std::cout << "Type : " << this->type << std::endl;
@@ -35,9 +25,6 @@ void Light::disInfo() {
 		std::cout << this->light_color[i] << " ";
 	}std::cout << std::endl;
 	std::cout << "Attenuation : ";
-	for (int i = 0; i < 2; ++i) {
-		std::cout << this->attenuation[i] << " ";
-	}std::cout << std::endl;
 
 }
 

@@ -28,6 +28,7 @@ public:
 	void scene_analyzer(std::vector<std::string>);
 	void add_light(Light);
 	void render();
+	int isVisToLight(glm::vec3, Light&);
 	void savePic();
 	void disLightInfo();
 	void disObjectInfo();
