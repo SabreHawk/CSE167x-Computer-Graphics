@@ -54,22 +54,25 @@ int main() {
 		
 		cin.get();
 	} else {
-		string amb = "scene-info/scene4-ambient.test";
-		string diff = "scene-info/scene4-diffuse.test";
-		string emi = "scene-info/scene4-emission.test";
-		string spe = "scene-info/scene4-specular.test";
-		string s5 = "scene-info/scene5.test";
-		string s6 = "scene-info/scene6.test";
-		string s7 = "scene-info/scene7.test";
-		string test = "scene-info/mytest.test";
-		FileManager file_manager(s6);
-		file_manager.read_file();
-		Scene tmp_scene;
+		string scene_info[8] = { "scene-info/scene4-ambient.test",
+								"scene-info/scene4-diffuse.test",
+								"scene-info/scene4-emission.test",
+								"scene-info/scene4-specular.test",
+								"scene-info/scene5.test",
+								"scene-info/scene6.test",
+								"scene-info/scene7.test",
+								"scene-info/mytest.test" };
+		for (int i = 0; i < 8; ++i) {
+			FileManager file_manager(scene_info[i]);
+			file_manager.read_file();
+			Scene tmp_scene;
+
+			tmp_scene.scene_analyzer(file_manager.getContent());
+			//tmp_scene.disObjectInfo();
+			tmp_scene.disSceneInfo();
+			tmp_scene.render();
+		}
 		
-		tmp_scene.scene_analyzer(file_manager.getContent());
-		//tmp_scene.disObjectInfo();
-		tmp_scene.disSceneInfo();
-		tmp_scene.render();
 		//cin.get();
 	}
 }
