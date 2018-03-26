@@ -134,6 +134,39 @@ IntersectionInfo Sphere::intersectRay(Ray & _r) {
 	return IntersectionInfo(true,tmp_out,tmp_ins_p,tmp_normal);
 }
 
+IntersectionInfo Sphere::shadowIntersection(Ray & _r) {
+	glm::vec4 tmp_pp = glm::inverse(this->getTransMat())*glm::vec4(_r.getOriginPos(), 1);
+	glm::vec3 trans_p = glm::vec3(tmp_pp.x / tmp_pp.w, tmp_pp.y / tmp_pp.w, tmp_pp.z / tmp_pp.w);
+	glm::vec3 trans_dir = glm::normalize(glm::vec3(glm::inverse(this->getTransMat()) * glm::vec4(_r.getDirection(), 0)));
+
+	Ray tmp_r(trans_p, trans_dir);
+	glm::vec3 tmp_vec = tmp_r.getOriginPos() - this->center_pos;
+	float a = glm::dot(tmp_r.getDirection(), tmp_r.getDirection());
+	float b = 2 * glm::dot(tmp_r.getDirection(), tmp_vec);
+	float c = glm::dot(tmp_vec, tmp_vec) - pow(this->radius, 2);
+	float delta = b * b - 4 * a * c;
+	if (delta <= 0) {
+		return IntersectionInfo(false);
+		//return INFINITY;
+	}
+	float root_0 = (-1 * sqrt(delta) - b) / (2 * a);
+	float root_1 = (sqrt(delta) - b) / (2 * a);
+	float tmp_out = 0;
+	if (root_0 * root_1 <= 0) {
+		return IntersectionInfo(false);
+	} else {
+		tmp_out = std::min(root_0, root_1);
+	}
+	if (tmp_out < 0.00001f) {
+		return IntersectionInfo(false);
+	}
+	glm::vec4 world_ins_pos = this->getTransMat() * glm::vec4(trans_p + tmp_out * trans_dir, 1);
+	glm::vec3 tmp_ins_p = glm::vec3(world_ins_pos.x / world_ins_pos.w, world_ins_pos.y / world_ins_pos.w, world_ins_pos.z / world_ins_pos.w);
+	glm::vec3 tmp_normal = glm::normalize(trans_p + tmp_out * trans_dir - this->center_pos);
+	tmp_normal = glm::normalize(glm::vec3(glm::inverse(glm::transpose(this->getTransMat())) * glm::vec4(tmp_normal, 0)));
+	tmp_out = glm::length(tmp_ins_p - _r.getOriginPos());
+	return IntersectionInfo(true, tmp_out, tmp_ins_p, tmp_normal);
+}
 void Sphere::transObject() {
 }
 
@@ -231,6 +264,26 @@ IntersectionInfo Triangle::intersectRay(Ray & _r) {
 	}
 }
 
+IntersectionInfo Triangle::shadowIntersection(Ray & _r) {
+	if (glm::dot(_r.getDirection(), this->normal) == 0) {
+		return IntersectionInfo(false);
+	}
+	float tmp_t = (glm::dot(this->vertexs[0], this->normal) - glm::dot(_r.getOriginPos(), this->normal)) / glm::dot(_r.getDirection(), this->normal);
+	if (tmp_t <= 0) {
+		return IntersectionInfo(false);
+	}
+	glm::vec3 tmp_pos = _r.getOriginPos() + tmp_t * _r.getDirection();
+	glm::vec3 edge10 = this->vertexs[1] - this->vertexs[0];
+	glm::vec3 edge21 = this->vertexs[2] - this->vertexs[1];
+	glm::vec3 edge02 = this->vertexs[0] - this->vertexs[2];
+	if (glm::dot(glm::cross(edge10, tmp_pos - this->vertexs[0]), this->normal) >= 0 &&
+		glm::dot(glm::cross(edge21, tmp_pos - this->vertexs[1]), this->normal) >= 0 &&
+		glm::dot(glm::cross(edge02, tmp_pos - this->vertexs[2]), this->normal) >= 0) {
+		return IntersectionInfo(true, tmp_t, tmp_pos, this->normal);
+	} else {
+		return IntersectionInfo(false);
+	}
+}
 glm::vec3 Triangle::getNormal(glm::vec3 _p) {
 	return this->normal;
 }

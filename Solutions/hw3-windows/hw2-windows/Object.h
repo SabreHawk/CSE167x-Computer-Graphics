@@ -35,6 +35,7 @@ public:
 	virtual glm::mat4 getTransMat();
 	virtual void transObject() = 0;
 	virtual IntersectionInfo intersectRay(Ray &) = 0;
+	virtual IntersectionInfo shadowIntersection(Ray &) = 0;
 	virtual glm::vec3 computeLambertLight(glm::vec3 &, glm::vec3 &, Light &) = 0;
 	virtual glm::vec3 computePhongLight(glm::vec3 &, glm::vec3 &, glm::vec3 &, Light &) = 0;
 	virtual void disInfo();
@@ -50,6 +51,7 @@ public:
 	Sphere(glm::vec3, float);
 	void disInfo();
 	IntersectionInfo intersectRay(Ray &);
+	IntersectionInfo shadowIntersection(Ray &);
 	void transObject();
 	glm::vec3 getNormal(glm::vec3);
 	glm::vec3 computeLambertLight(glm::vec3 &, glm::vec3 &, Light &);
@@ -67,7 +69,8 @@ public:
 	void disInfo();
 	void transObject();
 	void setTransMat(glm::mat4 _m);
-	IntersectionInfo intersectRay(Ray &);
+	IntersectionInfo intersectRay(Ray &); 
+	IntersectionInfo shadowIntersection(Ray &);
 	glm::vec3 computeLambertLight(glm::vec3 &, glm::vec3 &, Light &);
 	glm::vec3 computePhongLight(glm::vec3 &, glm::vec3 &, glm::vec3 &, Light &);
 	glm::vec3 getReflectionRay(Ray &);

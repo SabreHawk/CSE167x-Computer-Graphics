@@ -61,7 +61,7 @@ glm::vec3 Scene::traceRay(Ray _r,int _layer) {
 		} else {
 			tmp_light_dir = glm::normalize((light_itor->getPos()));
 		}
-		if (!isVisToLight(final_ins_info.getPos(), *light_itor)) {
+		if (!isVisToLight(final_ins_info.getPos()+0.001f*tmp_light_dir, *light_itor)) {
 			continue;
 		}
 
@@ -299,7 +299,7 @@ int Scene::isVisToLight(glm::vec3 _p, Light & _l) {
 	std::vector<Object*>::iterator itor;
 	IntersectionInfo tmp_ins_info;
 	for (itor = this->object_vector.begin(); itor != this->object_vector.end(); ++itor) {
-		tmp_ins_info = (*itor)->intersectRay(tmp_r);
+		tmp_ins_info = (*itor)->shadowIntersection(tmp_r);
 		if (tmp_ins_info.getIsIns() == true) {// Interesction
 			float pToLightDis;
 			if (_l.getType() == 1) {

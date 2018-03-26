@@ -62,7 +62,7 @@ int main() {
 		string s6 = "scene-info/scene6.test";
 		string s7 = "scene-info/scene7.test";
 		string test = "scene-info/mytest.test";
-		FileManager file_manager(s7);
+		FileManager file_manager(s6);
 		file_manager.read_file();
 		Scene tmp_scene;
 		
